@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^echo 'Checking current monitor processes'; pgrep -af health_research_monitor\\.py \\|\\| true; echo 'Stopping existing monitor processes'; pkill -f health_research_monitor\\.py \\|\\| true; echo 'Starting monitor'; nohup \"/Users/aryankshparida/Public Health Research/\\.venv/bin/python\" \"health_research_monitor\\.py\" >> \"monitor\\.log\" 2>&1 & echo \"Started new monitor PID: \\$!\"; echo 'Active monitor process:'; pgrep -af health_research_monitor\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ article['title'] }} | Public Health Journal Desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="article-page">
+      <header class="article-header reveal">
+        <a class="muted-link" href="{{ url_for('public_home') }}">← Back to journal</a>
+        <p class="kicker">Research Feature</p>
+        <h1>{{ article['title'] }}</h1>
+        <p class="byline">
+          {{ article['source'] or 'Independent Desk' }}
+          {% if article['article_date'] %}
+          | {{ article['article_date'] }}
+          {% endif %}
+          | Uploaded {{ article['created_at'] }}
+        </p>
+      </header>
+
+      <section class="article-layout reveal delayed-1">
+        <article class="article-content">
+          {% if article['url'] %}
+          <p><a class="btn-link" href="{{ article['url'] }}" target="_blank" rel="noopener noreferrer">Open source material</a></p>
+          {% endif %}
+          {% if article['attachment_name'] %}
+          <p class="meta">Attachment: {{ article['attachment_name'] }}</p>
+          {% endif %}
+
+          {% for paragraph in article['content'].split('\n\n') %}
+            {% if paragraph.strip() %}
+            {% if paragraph.strip() in ['What happened', 'What the evidence says', 'How this report was built', 'Cross-referenced findings from recognized sources', 'Synthesis across studies', 'What this means for the public', 'What remains uncertain', 'Bottom line', 'Verified Sources'] %}
+            <h2>{{ paragraph.strip() }}</h2>
+            {% else %}
+            <p>{{ paragraph.strip() }}</p>
+            {% endif %}
+            {% endif %}
+          {% endfor %}
+        </article>
+
+        <aside class="related-column">
+          <h3>More From The Desk</h3>
+          {% if related_articles %}
+          <ul>
+            {% for item in related_articles %}
+            <li>
+              <a href="{{ url_for('article_detail', article_id=item['id']) }}">{{ item['title'] }}</a>
+              <p class="brief-meta">{{ item['source'] or 'Field Desk' }} | {{ item['article_date'] or item['created_at'] }}</p>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="empty-note">No related pieces yet.</p>
+          {% endif %}
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>

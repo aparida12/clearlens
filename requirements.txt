@@ -1,0 +1,9 @@
+feedparser
+openai
+requests
+schedule
+python-dotenv
+Flask
+pypdf
+gunicorn
+reportlab

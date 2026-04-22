@@ -1,0 +1,40 @@
+name: ClearLens Agent
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  run-agent:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger ClearLens agent
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST https://your-app.vercel.app/api/agent/run \
+            -H "Content-Type: application/json" \
+            -H "x-agent-secret: ${{ secrets.AGENT_SECRET }}")
+          echo "Response code: $response"
+          if [ "$response" != "200" ]; then
+            echo "Agent run failed with status $response"
+            exit 1
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{"text":"🚨 ClearLens agent cron FAILED. Check Vercel logs."}'
+
+  weekly-digest:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9 * * 1'
+    steps:
+      - name: Send weekly digest
+        run: |
+          curl -X POST https://your-app.vercel.app/api/email/digest \
+            -H "x-agent-secret: ${{ secrets.AGENT_SECRET }}"

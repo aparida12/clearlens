@@ -1,0 +1,17 @@
+name: ClearLens Health Check
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check site is up
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://your-app.vercel.app)
+          if [ "$response" != "200" ]; then
+            curl -s -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+              -H "Content-Type: application/json" \
+              -d "{\"text\":\"🚨 ClearLens is DOWN. Status: $response\"}"
+          fi

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editorial Desk – Submit & Review Articles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="masthead reveal">
+        <p class="stamp">Editorial Operations | Edition {{ today }}</p>
+        <h1>Public Health Journal Desk</h1>
+        <div class="mast-meta">
+          <span>{{ uploaded_count }} published features</span>
+          <span>{{ processed_count }} monitor briefs</span>
+        </div>
+        <p style="text-align: center; margin: 0.4rem 0 0; color: #575148; font-size: 0.9rem;">
+          <a class="muted-link" href="{{ url_for('public_home') }}">← View public front page</a>
+        </p>
+      </header>
+
+      <section class="front-grid reveal delayed-1">
+        <article class="lead-story">
+          {% if featured_article %}
+          <p class="kicker">Lead Analysis</p>
+          <h2>{{ featured_article['title'] }}</h2>
+          <p class="byline">
+            {{ featured_article['source'] or 'Independent Desk' }}
+            {% if featured_article['article_date'] %}
+            | {{ featured_article['article_date'] }}
+            {% endif %}
+          </p>
+          <p class="lead-copy">{{ featured_article['content'][:520] }}{% if featured_article['content']|length > 520 %}...{% endif %}</p>
+          <div class="lead-actions">
+            <a class="btn-link" href="{{ url_for('article_detail', article_id=featured_article['id']) }}">Read full report</a>
+            {% if featured_article['url'] %}
+            <a class="muted-link" href="{{ featured_article['url'] }}" target="_blank" rel="noopener noreferrer">Open source material</a>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="kicker">Lead Analysis</p>
+          <h2>Editorial Desk Awaiting First Submission</h2>
+          <p class="lead-copy">
+            Upload your first PDF, TXT, or manual article notes to start publishing a full front-page report. Once submitted,
+            the lead story appears here with a detailed article view.
+          </p>
+        </article>
+        {% endif %}
+
+        <aside class="brief-column">
+          <h3>Monitor Wire</h3>
+          {% if monitor_briefs %}
+          <ul>
+            {% for item in monitor_briefs %}
+            <li>
+              <p class="brief-title">{{ item['title'] }}</p>
+              <p class="brief-meta">{{ item['source'] }} | {{ item['date'] }}</p>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="empty-note">Run the monitor script to populate this wire feed with daily public-health developments.</p>
+          {% endif %}
+        </aside>
+      </section>
+
+      <section class="section-head reveal delayed-2">
+        <h3>Published Dispatches</h3>
+      </section>
+
+      <section class="dispatch-grid reveal delayed-2">
+        {% if journal_articles %}
+          {% for article in journal_articles %}
+          <article class="dispatch-card">
+            <p class="dispatch-source">{{ article['source'] or 'Field Desk' }}</p>
+            <h4>{{ article['title'] }}</h4>
+            <p class="dispatch-copy">{{ article['content'][:240] }}{% if article['content']|length > 240 %}...{% endif %}</p>
+            <p class="dispatch-meta">
+              {% if article['article_date'] %}
+              {{ article['article_date'] }}
+              {% else %}
+              Uploaded {{ article['created_at'] }}
+              {% endif %}
+            </p>
+            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem;">
+              <a class="muted-link" href="{{ url_for('article_detail', article_id=article['id']) }}">Read article</a>
+              <button class="desk-btn" data-research-btn="{{ article['id'] }}" data-depth="medium" title="Run cross-research on multiple sources">🔍 Research</button>
+            </div>
+          </article>
+          {% endfor %}
+        {% else %}
+          <article class="dispatch-card placeholder">
+            <p class="dispatch-source">Submission Desk</p>
+            <h4>Publish the first reported piece</h4>
+            <p class="dispatch-copy">Use the submission form below to upload a PDF/TXT or paste article content.</p>
+          </article>
+          <article class="dispatch-card placeholder">
+            <p class="dispatch-source">Editorial Queue</p>
+            <h4>Build your own health intelligence feed</h4>
+            <p class="dispatch-copy">Once entries are uploaded, this section becomes your rolling news-journal stream.</p>
+          </article>
+        {% endif %}
+      </section>
+
+      <section class="submit-section reveal delayed-3">
+        <article>
+          <h3>Submit to the Desk</h3>
+          <form method="post" action="{{ url_for('upload_article') }}" class="upload-form" enctype="multipart/form-data">
+            <label>Headline</label>
+            <input type="text" name="title" placeholder="Optional if uploading a file" />
+
+            <label>Source</label>
+            <input type="text" name="source" placeholder="WHO, NIH, journal, etc." />
+
+            <label>Article Date</label>
+            <input type="date" name="article_date" />
+
+            <label>External URL</label>
+            <input type="url" name="url" placeholder="https://..." />
+
+            <label>Upload PDF or TXT</label>
+            <input type="file" name="article_file" accept=".pdf,.txt" />
+
+            <label>Story Text</label>
+            <textarea name="content" rows="8" placeholder="Paste complete article content here. Uploaded files are automatically extracted."></textarea>
+
+            <p class="form-note">At least one input is required: file upload or story text.</p>
+            <button type="submit">Publish Entry</button>
+          </form>
+        </article>
+      </section>
+    </main>
+
+    <style>
+      .desk-btn {
+        background: transparent;
+        border: 1px solid #c9b79c;
+        padding: 0.3rem 0.55rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: #575148;
+        transition: all 0.2s;
+      }
+
+      .desk-btn:hover {
+        background: #f5e8d8;
+        border-color: #7d1f1f;
+        color: #7d1f1f;
+      }
+
+      .desk-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    </style>
+    <script src="{{ url_for('static', filename='cross_research.js') }}"></script>
+  </body>
+</html>

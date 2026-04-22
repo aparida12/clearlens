@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cross-Research Analysis | Public Health Journal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="article-page">
+      <header class="article-header reveal">
+        <a class="muted-link" href="{{ url_for('public_home') }}">← Back to journal</a>
+        <p class="kicker">Research Analysis</p>
+        <h1>{{ research['original_title'] }}</h1>
+        <p class="byline">
+          Cross-Research Report
+          | Generated {{ research['research_date'] }}
+        </p>
+      </header>
+
+      <section class="article-layout reveal delayed-1">
+        <article class="article-content">
+          <div class="research-meta">
+            <div class="badge" style="background: {% if research['reliability_score'] == 'high' %}#d4edda{% elif research['reliability_score'] == 'medium' %}#fff3cd{% else %}#f8d7da{% endif %}; color: {% if research['reliability_score'] == 'high' %}#155724{% elif research['reliability_score'] == 'medium' %}#856404{% else %}#721c24{% endif %};">
+              Reliability: <strong>{{ research['reliability_score']|upper }}</strong>
+            </div>
+            <div class="badge" style="background: #e7f3ff; color: #004085;">
+              {{ research['total_sources_found'] }} sources found
+            </div>
+          </div>
+
+          {% if research_data.findings %}
+          <h3>Published Research ({{ research_data.findings.corroborating_studies|length }} studies)</h3>
+          {% for study in research_data.findings.corroborating_studies %}
+          <div class="research-item">
+            <h4><a href="{{ study.url }}" target="_blank" rel="noopener noreferrer">{{ study.title }}</a></h4>
+            {% if study.authors %}
+            <p class="study-authors">{{ study.authors|join(', ') }}</p>
+            {% endif %}
+            <p>{{ study.summary }}</p>
+            <p class="study-meta">📅 {{ study.date }} | 🔗 <a href="{{ study.url }}" target="_blank">PubMed</a></p>
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          {% if research_data.findings.related_news %}
+          <h3>News Coverage ({{ research_data.findings.related_news|length }} articles)</h3>
+          {% for news in research_data.findings.related_news %}
+          <div class="research-item">
+            <h4><a href="{{ news.url }}" target="_blank" rel="noopener noreferrer">{{ news.title }}</a></h4>
+            <p>{{ news.summary }}</p>
+            <p class="study-meta">📰 {{ news.source }} | <a href="{{ news.url }}" target="_blank">Read more →</a></p>
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          {% if research_data.findings.complementary_research %}
+          <h3>Complementary Research ({{ research_data.findings.complementary_research|length }} preprints)</h3>
+          {% for preprint in research_data.findings.complementary_research %}
+          <div class="research-item">
+            <h4><a href="{{ preprint.url }}" target="_blank" rel="noopener noreferrer">{{ preprint.title }}</a></h4>
+            <p>{{ preprint.summary }}</p>
+            <p class="study-meta">📄 <a href="{{ preprint.url }}" target="_blank">arXiv:{{ preprint.arxiv_id }}</a></p>
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          <hr style="margin: 2rem 0; border: none; border-top: 1px dashed #d4c8b4;" />
+
+          <div class="full-article">
+            {{ research['article_content']|safe }}
+          </div>
+        </article>
+
+        <aside class="related-column">
+          <h3>Research Summary</h3>
+          <div style="background: #f9f3e8; padding: 0.8rem; border-radius: 8px;">
+            <p style="margin: 0 0 0.5rem; font-weight: 700;">Keywords</p>
+            <p style="margin: 0; color: #575148; font-size: 0.9rem;">{{ research['keywords'] }}</p>
+
+            <p style="margin: 0.75rem 0 0.5rem; font-weight: 700;">Reliability</p>
+            <p style="margin: 0; color: #575148; font-size: 0.9rem;">{{ research['reliability_score']|upper }}</p>
+
+            <p style="margin: 0.75rem 0 0.5rem; font-weight: 700;">Sources Found</p>
+            <p style="margin: 0; color: #575148; font-size: 0.9rem;">{{ research['total_sources_found'] }} total</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  .research-meta {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .research-item {
+    border-left: 3px solid #7d1f1f;
+    padding: 1rem;
+    margin: 1rem 0;
+    background: #f9f3e8;
+  }
+
+  .research-item h4 {
+    margin: 0 0 0.35rem;
+  }
+
+  .research-item h4 a {
+    color: #7d1f1f;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .research-item h4 a:hover {
+    text-decoration: underline;
+  }
+
+  .study-authors {
+    color: #575148;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0.25rem 0;
+  }
+
+  .study-meta {
+    color: #575148;
+    font-size: 0.85rem;
+    margin: 0.5rem 0 0;
+  }
+
+  .full-article {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #d4c8b4;
+    line-height: 1.7;
+  }
+
+  .full-article h3 {
+    color: #7d1f1f;
+    margin-top: 1.5rem;
+  }
+
+  .full-article p {
+    line-height: 1.7;
+  }
+</style>
