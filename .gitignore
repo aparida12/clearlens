@@ -1,1 +1,7 @@
 .env
+news-agent/node_modules/
+news-agent/.env
+news-agent/processed_urls.json
+news-agent/node_modules/
+news-agent/.env
+news-agent/processed_urls.json
