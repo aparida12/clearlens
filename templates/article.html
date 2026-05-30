@@ -3,63 +3,144 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ article['title'] }} | Public Health Journal Desk</title>
+    <title>{{ article.headline }} – ClearLens</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <style>
+      .article-body { max-width: 720px; margin: 0 auto; }
+      .article-body p { margin-bottom: 1.4em; line-height: 1.8; }
+      .takeaway-box { background: #f5f0e8; border-left: 4px solid #8b1a1a; padding: 1.2em 1.5em; margin: 2em 0; border-radius: 2px; }
+      .takeaway-box p { margin: 0; font-weight: 600; }
+      .sources-section { margin-top: 2em; padding-top: 1.5em; border-top: 1px solid #e0d8cc; }
+      .sources-section h4 { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 1em; }
+      .source-link { display: block; font-size: 0.9em; color: #8b1a1a; margin-bottom: 0.5em; word-break: break-all; }
+      .social-section { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #e0d8cc; }
+      .social-section h3 { font-size: 1em; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 1.5em; }
+      .social-card { background: #faf8f4; border: 1px solid #e0d8cc; border-radius: 6px; padding: 1.2em; margin-bottom: 1em; }
+      .social-card .platform { font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #8b1a1a; margin-bottom: 0.6em; }
+      .social-card p { font-size: 0.9em; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+      .copy-btn { font-size: 0.75em; background: #8b1a1a; color: white; border: none; padding: 0.3em 0.8em; border-radius: 3px; cursor: pointer; margin-top: 0.6em; }
+      .copy-btn:hover { background: #6b1414; }
+      .related-section { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #e0d8cc; }
+      .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2em; margin-top: 1em; }
+      .related-card h5 { font-size: 0.95em; margin: 0.3em 0; }
+      .related-card p { font-size: 0.8em; color: #888; margin: 0; }
+    </style>
   </head>
   <body>
-    <main class="article-page">
-      <header class="article-header reveal">
-        <a class="muted-link" href="{{ url_for('public_home') }}">← Back to journal</a>
-        <p class="kicker">Research Feature</p>
-        <h1>{{ article['title'] }}</h1>
-        <p class="byline">
-          {{ article['source'] or 'Independent Desk' }}
-          {% if article['article_date'] %}
-          | {{ article['article_date'] }}
-          {% endif %}
-          | Uploaded {{ article['created_at'] }}
-        </p>
+    <main class="page reveal">
+      <header class="masthead" style="padding-bottom: 1em;">
+        <a href="{{ url_for('public_home') }}" style="font-size: 0.85em; color: #8b1a1a; text-decoration: none;">← Back to ClearLens</a>
+        <h1 style="font-size: 1.4em; margin-top: 0.5em;">ClearLens</h1>
       </header>
 
-      <section class="article-layout reveal delayed-1">
-        <article class="article-content">
-          {% if article['url'] %}
-          <p><a class="btn-link" href="{{ article['url'] }}" target="_blank" rel="noopener noreferrer">Open source material</a></p>
-          {% endif %}
-          {% if article['attachment_name'] %}
-          <p class="meta">Attachment: {{ article['attachment_name'] }}</p>
-          {% endif %}
+      <article class="article-body">
+        <p class="kicker" style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.1em; color: #8b1a1a; margin-bottom: 0.5em;">{{ article.source }}</p>
+        <h2 style="font-size: 2em; line-height: 1.2; margin-bottom: 0.5em;">{{ article.headline }}</h2>
+        <p class="byline" style="color: #888; font-size: 0.85em; margin-bottom: 2em;">{{ article.date_formatted }}{% if article.source_url %} · <a href="{{ article.source_url }}" target="_blank" rel="noopener" style="color: #8b1a1a;">Original source</a>{% endif %}</p>
 
-          {% for paragraph in article['content'].split('\n\n') %}
-            {% if paragraph.strip() %}
-            {% if paragraph.strip() in ['What happened', 'What the evidence says', 'How this report was built', 'Cross-referenced findings from recognized sources', 'Synthesis across studies', 'What this means for the public', 'What remains uncertain', 'Bottom line', 'Verified Sources'] %}
-            <h2>{{ paragraph.strip() }}</h2>
-            {% else %}
-            <p>{{ paragraph.strip() }}</p>
-            {% endif %}
+        <p style="font-size: 1.1em; font-weight: 600; line-height: 1.7; margin-bottom: 2em;">{{ article.summary }}</p>
+
+        {% for paragraph in article.body.split('\n\n') %}
+          {% if paragraph.strip() %}
+          <p>{{ paragraph.strip() }}</p>
+          {% endif %}
+        {% endfor %}
+
+        {% if article.takeaway %}
+        <div class="takeaway-box">
+          <p>Key takeaway: {{ article.takeaway }}</p>
+        </div>
+        {% endif %}
+
+        {% if article.research_sources %}
+        <div class="sources-section">
+          <h4>Sources</h4>
+          {% for source in article.research_sources %}
+            {% if source.url %}
+            <a class="source-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title or source.url }}</a>
             {% endif %}
           {% endfor %}
-        </article>
+        </div>
+        {% endif %}
 
-        <aside class="related-column">
-          <h3>More From The Desk</h3>
-          {% if related_articles %}
-          <ul>
-            {% for item in related_articles %}
-            <li>
-              <a href="{{ url_for('article_detail', article_id=item['id']) }}">{{ item['title'] }}</a>
-              <p class="brief-meta">{{ item['source'] or 'Field Desk' }} | {{ item['article_date'] or item['created_at'] }}</p>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="empty-note">No related pieces yet.</p>
+        {% if article.social %}
+        <div class="social-section">
+          <h3>Social Media Posts</h3>
+
+          {% if article.social.twitter %}
+          <div class="social-card">
+            <div class="platform">Twitter / X</div>
+            <p>{{ article.social.twitter }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+          </div>
           {% endif %}
-        </aside>
-      </section>
+
+          {% if article.social.linkedin %}
+          <div class="social-card">
+            <div class="platform">LinkedIn</div>
+            <p>{{ article.social.linkedin }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+          </div>
+          {% endif %}
+
+          {% if article.social.instagram %}
+          <div class="social-card">
+            <div class="platform">Instagram</div>
+            <p>{{ article.social.instagram }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+          </div>
+          {% endif %}
+
+          {% if article.social.tiktok %}
+          <div class="social-card">
+            <div class="platform">TikTok Script</div>
+            <p>{{ article.social.tiktok }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+          </div>
+          {% endif %}
+
+          {% if article.social.facebook %}
+          <div class="social-card">
+            <div class="platform">Facebook</div>
+            <p>{{ article.social.facebook }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+          </div>
+          {% endif %}
+
+          {% if article.social.threads %}
+          <div class="social-card">
+            <div class="platform">Threads</div>
+            <p>{{ article.social.threads }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+          </div>
+          {% endif %}
+
+        </div>
+        {% endif %}
+
+      </article>
+
+      {% if related_articles %}
+      <div class="related-section">
+        <h3 style="font-size: 1em; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">More from ClearLens</h3>
+        <div class="related-grid">
+          {% for r in related_articles %}
+          <div class="related-card">
+            <p style="font-size: 0.75em; color: #8b1a1a; text-transform: uppercase; letter-spacing: 0.08em;">{{ r.source }}</p>
+            <h5><a href="{{ url_for('article_detail', slug=r.slug) }}" style="color: inherit; text-decoration: none;">{{ r.headline }}</a></h5>
+            <p>{{ r.date_formatted }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <footer class="page-footer" style="margin-top: 3em;">
+        <p>ClearLens — AI-sourced news with full transparency</p>
+      </footer>
     </main>
   </body>
 </html>

@@ -1,6 +1,36 @@
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
+require('dotenv').config();
+
+const SERPER_API_KEY = process.env.SERPER_API_KEY;
+
+function searchSources(query) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ q: query, num: 8, gl: 'us', hl: 'en' });
+    const options = {
+      hostname: 'google.serper.dev',
+      path: '/news',
+      method: 'POST',
+      headers: {
+        'X-API-KEY': SERPER_API_KEY,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data).news || []); }
+        catch (err) { reject(new Error('Failed to parse Serper response')); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
 
 function fetchHTML(rawUrl) {
   return new Promise((resolve, reject) => {
@@ -12,11 +42,10 @@ function fetchHTML(rawUrl) {
         path: parsed.pathname + parsed.search,
         method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           'Accept': 'text/html,application/xhtml+xml',
-          'Accept-Language': 'en-US,en;q=0.9',
         },
-        timeout: 12000,
+        timeout: 10000,
       };
       const req = lib.request(options, (res) => {
         if ((res.statusCode === 301 || res.statusCode === 302) && res.headers.location) {
@@ -29,9 +58,7 @@ function fetchHTML(rawUrl) {
       req.on('error', reject);
       req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
       req.end();
-    } catch (err) {
-      reject(err);
-    }
+    } catch (err) { reject(err); }
   });
 }
 
@@ -40,64 +67,69 @@ function extractText(html) {
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 8000);
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/\s+/g, ' ')
+    .trim().slice(0, 4000);
+}
+
+function extractDomain(url) {
+  try { return new URL(url).hostname.replace('www.', ''); }
+  catch { return url; }
+}
+
+function buildSearchQuery(title) {
+  return title.replace(/['"""]/g, '')
+    .replace(/\b(breaking|exclusive|watch|just in|update)\b/gi, '')
+    .trim().slice(0, 100);
 }
 
 async function researchTopic(item) {
-  const sources = [];
-  let primaryText = '';
-  let primaryTitle = item.title;
+  if (!SERPER_API_KEY) throw new Error('SERPER_API_KEY is not set');
 
-  // Try fetching the full article
-  if (item.link) {
-    try {
-      const html = await fetchHTML(item.link);
-      const text = extractText(html);
-      if (text.length > 200) {
-        primaryText = text;
-        sources.push({
-          title: item.title,
-          url: item.link,
-          summary: text.slice(0, 500),
-        });
-      }
-    } catch (err) {
-      console.warn(`  Could not fetch article page: ${err.message}`);
+  const query = buildSearchQuery(item.title);
+  console.log(`  Searching: "${query}"`);
+
+  let searchResults = [];
+  try { searchResults = await searchSources(query); }
+  catch (err) { console.warn(`  Search failed: ${err.message}`); }
+
+  const sources = [];
+  for (const result of searchResults.slice(0, 6)) {
+    const source = {
+      title: result.title || '',
+      url: result.link || '',
+      outlet: result.source || extractDomain(result.link || ''),
+      snippet: result.snippet || '',
+      publishedAt: result.date || '',
+      content: '',
+    };
+
+    if (result.link) {
+      try {
+        const html = await fetchHTML(result.link);
+        const text = extractText(html);
+        if (text.length > 200) source.content = text;
+      } catch (err) {}
     }
+
+    if (!source.content && source.snippet) source.content = source.snippet;
+    if (source.content || source.snippet) sources.push(source);
+    await new Promise(r => setTimeout(r, 500));
   }
 
-  // Always include RSS summary as a source regardless
-  if (item.summary && item.summary.length > 30) {
+  if (sources.length === 0) {
     sources.push({
       title: item.title,
       url: item.link || '',
-      summary: item.summary,
+      outlet: item.source || 'RSS Feed',
+      snippet: item.summary || '',
+      content: item.summary || item.title,
+      publishedAt: item.pubDate || '',
     });
-    // If fetch failed or returned too little, use summary as primary text
-    if (primaryText.length < 200) {
-      primaryText = `${item.title}. ${item.summary}`;
-    }
   }
 
-  // Last resort: just use the title
-  if (primaryText.length < 50) {
-    primaryText = item.title;
-  }
-
-  return {
-    primaryTitle,
-    primaryText,
-    sources,
-    fetchedAt: new Date().toISOString(),
-  };
+  return { query, originalTitle: item.title, sources, fetchedAt: new Date().toISOString() };
 }
 
 module.exports = { researchTopic };
-

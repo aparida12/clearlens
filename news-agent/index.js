@@ -4,7 +4,7 @@ const path = require('path');
 const RSSParser = require('rss-parser');
 const cron = require('node-cron');
 const { researchTopic } = require('./src/researcher');
-const { generateArticle, generateSocialContent, parseArticle, parseSocial } = require('./src/writer');
+const { generateArticle, generateSocialContent, scoreSources, parseArticle, parseSocial } = require('./src/writer');
 
 const parser = new RSSParser();
 
@@ -43,17 +43,22 @@ async function fetchTopStories() {
       console.warn(`Error fetching ${url}: ${err.message}`);
     }
   }
-  return all.slice(0, 5);
+  return all.slice(0, 4);
 }
 
-function saveOutput(parsed, social, item, research) {
+function saveOutput(parsed, social, consensus, item, research) {
   const slug = (parsed.headline || item.title)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .slice(0, 60);
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const filename = `${timestamp}-${slug}.json`;
   const filepath = path.join(OUTPUT_DIR, filename);
+
+  // Calculate consensus stats
+  const stances = (consensus.sources || []).map(s => s.stance);
+  const supports = stances.filter(s => s === 'supports').length;
+  const disputes = stances.filter(s => s === 'disputes').length;
+  const mixed = stances.filter(s => s === 'mixed').length;
+  const neutral = stances.filter(s => s === 'neutral').length;
 
   const output = {
     generatedAt: new Date().toISOString(),
@@ -61,11 +66,22 @@ function saveOutput(parsed, social, item, research) {
     sourceUrl: item.link,
     article: parsed,
     social: parseSocial(social),
-    researchSources: research.sources,
+    consensus: {
+      centralClaim: consensus.centralClaim || '',
+      summary: consensus.consensusSummary || '',
+      stats: { supports, disputes, mixed, neutral, total: stances.length },
+      sources: consensus.sources || [],
+    },
+    researchSources: research.sources.map(s => ({
+      title: s.title,
+      url: s.url,
+      outlet: s.outlet,
+      publishedAt: s.publishedAt,
+    })),
   };
 
   fs.writeFileSync(filepath, JSON.stringify(output, null, 2));
-  console.log(`Saved: ${filename}`);
+  console.log(`  Saved: ${filename}`);
   return filepath;
 }
 
@@ -86,15 +102,22 @@ async function runPipeline() {
   for (const item of newStories) {
     console.log(`\nProcessing: ${item.title}`);
     try {
-      console.log('  Fetching source content...');
+      console.log('  Fetching multiple sources...');
       const research = await researchTopic(item);
+      console.log(`  Found ${research.sources.length} sources.`);
 
-      if (!research.primaryText || research.primaryText.length < 100) {
-        console.warn('  Insufficient content. Skipping.');
+      if (research.sources.length === 0) {
+        console.warn('  No sources found. Skipping.');
         continue;
       }
 
-      console.log('  Generating article with Groq...');
+      console.log('  Scoring consensus...');
+      const consensus = await scoreSources(research.sources, research.query);
+      console.log(`  Consensus: ${JSON.stringify(consensus.sources?.map(s => s.stance))}`);
+
+      await new Promise(r => setTimeout(r, 5000));
+
+      console.log('  Generating article...');
       const rawArticle = await generateArticle(item, research);
       const parsed = parseArticle(rawArticle);
 
@@ -103,15 +126,17 @@ async function runPipeline() {
         continue;
       }
 
+      await new Promise(r => setTimeout(r, 5000));
+
       console.log('  Generating social content...');
       const social = await generateSocialContent(rawArticle, parsed.headline);
 
-      saveOutput(parsed, social, item, research);
+      saveOutput(parsed, social, consensus, item, research);
       processed.add(item.link);
       saveProcessed(processed);
 
       console.log(`  Done: ${parsed.headline}`);
-      await new Promise(r => setTimeout(r, 8000));
+      await new Promise(r => setTimeout(r, 10000));
 
     } catch (err) {
       console.error(`  Error: ${err.message}`);

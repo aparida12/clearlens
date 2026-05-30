@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Public Health Journal – Daily Research & Findings</title>
+    <title>ClearLens – AI-Sourced News with Full Transparency</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -13,57 +13,51 @@
     <main class="page reveal">
       <header class="masthead">
         <p class="stamp">Edition {{ today }}</p>
-        <h1>Public Health Journal</h1>
-        <p class="mast-tagline">Curated research, analysis & findings in global health</p>
+        <h1>ClearLens</h1>
+        <p class="mast-tagline">AI-sourced news with full source transparency</p>
       </header>
 
       {% if featured_article %}
       <section class="front-grid delayed-1">
         <article class="lead-story">
           <p class="kicker">Today's Lead</p>
-          <h2>{{ featured_article['title'] }}</h2>
+          <h2>{{ featured_article.headline }}</h2>
           <p class="byline">
-            {{ featured_article['source'] or 'Research Desk' }}
-            {% if featured_article['article_date'] %}
-            | {{ featured_article['article_date'] }}
+            {{ featured_article.source }}
+            {% if featured_article.date_formatted %}
+            | {{ featured_article.date_formatted }}
             {% endif %}
           </p>
-          <p class="lead-copy">{{ featured_article['content'][:520] }}{% if featured_article['content']|length > 520 %}...{% endif %}</p>
-          <a class="btn-link" href="{{ url_for('article_detail', article_id=featured_article['id']) }}">Read full article</a>
+          <p class="lead-copy">{{ featured_article.summary }}</p>
+          <a class="btn-link" href="{{ url_for('article_detail', slug=featured_article.slug) }}">Read full article</a>
         </article>
 
         <aside class="stats-column">
           <div class="stat-box">
             <p class="stat-num">{{ total_articles }}</p>
-            <p class="stat-label">Published Features</p>
+            <p class="stat-label">Published Articles</p>
           </div>
           <div class="editorial-note">
-            <p class="note-label">About This Journal</p>
-            <p>Independent, unbiased public health research and analysis. Updated daily with peer-reviewed findings and expert perspectives.</p>
+            <p class="note-label">About ClearLens</p>
+            <p>AI-generated journalism grounded in real sources. Every article links back to its original reporting. Updated every 6 hours.</p>
           </div>
         </aside>
       </section>
       {% endif %}
 
       <section class="section-head delayed-2">
-        <h3>Latest Research</h3>
+        <h3>Latest News</h3>
       </section>
 
       <section class="dispatch-grid delayed-2">
         {% if recent_articles %}
           {% for article in recent_articles %}
           <article class="dispatch-card">
-            <p class="dispatch-source">{{ article['source'] or 'Research Desk' }}</p>
-            <h4><a href="{{ url_for('article_detail', article_id=article['id']) }}">{{ article['title'] }}</a></h4>
-            <p class="dispatch-copy">{{ article['content'][:240] }}{% if article['content']|length > 240 %}...{% endif %}</p>
-            <p class="dispatch-meta">
-              {% if article['article_date'] %}
-              {{ article['article_date'] }}
-              {% else %}
-              Published {{ article['created_at'] }}
-              {% endif %}
-            </p>
-            <a class="muted-link" href="{{ url_for('article_detail', article_id=article['id']) }}">Read article →</a>
+            <p class="dispatch-source">{{ article.source }}</p>
+            <h4><a href="{{ url_for('article_detail', slug=article.slug) }}">{{ article.headline }}</a></h4>
+            <p class="dispatch-copy">{{ article.summary[:240] }}{% if article.summary|length > 240 %}...{% endif %}</p>
+            <p class="dispatch-meta">{{ article.date_formatted }}</p>
+            <a class="muted-link" href="{{ url_for('article_detail', slug=article.slug) }}">Read article →</a>
           </article>
           {% endfor %}
         {% else %}
@@ -72,7 +66,7 @@
       </section>
 
       <footer class="page-footer delayed-3">
-        <p>Public Health Journal Desk — Independent research & curated findings</p>
+        <p>ClearLens — AI-sourced news with full transparency</p>
       </footer>
     </main>
   </body>
