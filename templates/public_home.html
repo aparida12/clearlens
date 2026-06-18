@@ -1,73 +1,192 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClearLens – AI-Sourced News with Full Transparency</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-  </head>
-  <body>
-    <main class="page reveal">
-      <header class="masthead">
-        <p class="stamp">Edition {{ today }}</p>
-        <h1>ClearLens</h1>
-        <p class="mast-tagline">AI-sourced news with full source transparency</p>
-      </header>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClearLens — Unbiased AI News</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --ink:#0f0e0c;--ink-2:#5a5751;--ink-3:#9a9690;
+      --paper:#faf8f4;--paper-2:#f2ede4;--paper-3:#e0d8cc;
+      --accent:#c0392b;
+      --agree:#1a7a4a;--dispute:#c0392b;--mixed:#b07d12;--neutral-c:#9a9690;
+    }
+    html{font-size:16px}
+    body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:400;line-height:1.6;min-height:100vh}
+    .masthead{border-bottom:2px solid var(--ink)}
+    .masthead-top{display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;border-bottom:0.5px solid var(--paper-3)}
+    .mast-date{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase}
+    .mast-tag{font-size:.72rem;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase;background:var(--paper-2);padding:.25rem .75rem;border-radius:2px}
+    .masthead-main{padding:2rem 2.5rem 1.5rem;text-align:center}
+    .masthead-main h1{font-family:'Playfair Display',serif;font-size:clamp(3rem,8vw,6rem);font-weight:900;letter-spacing:-.02em;line-height:1}
+    .mast-rule{display:flex;align-items:center;gap:1rem;margin-top:.75rem}
+    .mast-rule hr{flex:1;border:none;border-top:0.5px solid var(--paper-3)}
+    .mast-tagline{font-size:.8rem;color:var(--ink-2);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap}
+    .page-wrap{max-width:1280px;margin:0 auto;padding:0 2.5rem}
+    .featured-section{display:grid;grid-template-columns:1fr 320px;gap:0;border-bottom:1px solid var(--paper-3);margin-top:2.5rem}
+    .featured-main{padding-right:2.5rem;border-right:0.5px solid var(--paper-3)}
+    .kicker{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
+    .featured-hl{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;line-height:1.15;margin-bottom:1rem}
+    .featured-hl a{color:inherit;text-decoration:none}
+    .featured-hl a:hover{color:var(--accent)}
+    .byline{font-size:.78rem;color:var(--ink-3);letter-spacing:.04em;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+    .byline-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-3);display:inline-block}
+    .featured-summary{font-size:1.05rem;line-height:1.75;color:var(--ink-2);margin-bottom:1.5rem;border-left:3px solid var(--accent);padding-left:1rem}
+    .read-more{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:.1rem;transition:gap .2s}
+    .read-more:hover{gap:.75rem}
+    .consensus-box{background:var(--paper-2);border:0.5px solid var(--paper-3);border-radius:4px;padding:1.25rem;margin-top:1.5rem}
+    .c-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.75rem}
+    .c-claim{font-size:.85rem;color:var(--ink-2);margin-bottom:1rem;font-style:italic}
+    .c-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin-bottom:.6rem}
+    .c-bar-mini{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:1px;margin-bottom:.4rem}
+    .seg{border-radius:2px;transition:flex .6s ease}
+    .seg-agree{background:var(--agree)}
+    .seg-dispute{background:var(--dispute)}
+    .seg-mixed{background:var(--mixed)}
+    .seg-neutral{background:var(--paper-3)}
+    .c-legend{display:flex;gap:1rem;flex-wrap:wrap}
+    .c-legend-item{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--ink-2)}
+    .c-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .mini-leg{display:flex;gap:.75rem;flex-wrap:wrap}
+    .mini-leg-item{font-size:.67rem;color:var(--ink-3);display:flex;align-items:center;gap:.3rem}
+    .mini-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .featured-sidebar{padding-left:2rem}
+    .sidebar-stat{text-align:center;padding:1.5rem 0;border-bottom:0.5px solid var(--paper-3)}
+    .stat-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1}
+    .stat-label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:.25rem}
+    .about-box{padding:1.5rem 0}
+    .about-box h4{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.75rem}
+    .about-box p{font-size:.85rem;color:var(--ink-2);line-height:1.7}
+    .section-divider{display:flex;align-items:center;gap:1.5rem;margin:2.5rem 0 2rem}
+    .section-divider h2{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+    .section-divider hr{flex:1;border:none;border-top:0.5px solid var(--paper-3)}
+    .articles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:0.5px solid var(--paper-3);border-left:0.5px solid var(--paper-3);margin-bottom:3rem}
+    .article-card{padding:1.5rem;border-right:0.5px solid var(--paper-3);border-bottom:0.5px solid var(--paper-3);transition:background .15s;display:flex;flex-direction:column}
+    .article-card:hover{background:var(--paper-2)}
+    .card-source{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+    .card-hl{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;line-height:1.3;margin-bottom:.75rem}
+    .card-hl a{color:var(--ink);text-decoration:none}
+    .card-hl a:hover{color:var(--accent)}
+    .card-summary{font-size:.83rem;color:var(--ink-2);line-height:1.65;margin-bottom:1rem;flex:1}
+    .card-date{font-size:.7rem;color:var(--ink-3);margin-top:.75rem}
+    .empty-state{grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--ink-3);font-size:.9rem}
+    .site-footer{border-top:2px solid var(--ink);padding:2rem 2.5rem;text-align:center}
+    .site-footer p{font-size:.78rem;color:var(--ink-3);letter-spacing:.05em}
+    @media(max-width:900px){
+      .featured-section{grid-template-columns:1fr}
+      .featured-main{padding-right:0;border-right:none;border-bottom:0.5px solid var(--paper-3);padding-bottom:2rem}
+      .featured-sidebar{padding-left:0;padding-top:1.5rem}
+      .articles-grid{grid-template-columns:1fr}
+      .page-wrap,.masthead-top,.masthead-main{padding-left:1.25rem;padding-right:1.25rem}
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-top">
+      <span class="mast-date">{{ today }}</span>
+      <span class="mast-tag">AI-sourced · Multi-source verified · Unbiased</span>
+    </div>
+    <div class="masthead-main">
+      <h1>ClearLens</h1>
+      <div class="mast-rule">
+        <hr/><span class="mast-tagline">Every story. Every perspective. No agenda.</span><hr/>
+      </div>
+    </div>
+  </header>
 
-      {% if featured_article %}
-      <section class="front-grid delayed-1">
-        <article class="lead-story">
-          <p class="kicker">Today's Lead</p>
-          <h2>{{ featured_article.headline }}</h2>
-          <p class="byline">
-            {{ featured_article.source }}
-            {% if featured_article.date_formatted %}
-            | {{ featured_article.date_formatted }}
-            {% endif %}
-          </p>
-          <p class="lead-copy">{{ featured_article.summary }}</p>
-          <a class="btn-link" href="{{ url_for('article_detail', slug=featured_article.slug) }}">Read full article</a>
-        </article>
+  <div class="page-wrap">
+    {% if featured_article %}
+    <section class="featured-section">
+      <div class="featured-main">
+        <p class="kicker">Today's Lead · {{ featured_article.source }}</p>
+        <h2 class="featured-hl">
+          <a href="{{ url_for('article_detail', slug=featured_article.slug) }}">{{ featured_article.headline }}</a>
+        </h2>
+        <div class="byline">
+          <span>{{ featured_article.date_formatted }}</span>
+          {% if featured_article.consensus and featured_article.consensus.stats %}
+          <span class="byline-dot"></span>
+          <span>{{ featured_article.consensus.stats.total }} sources analyzed</span>
+          {% endif %}
+        </div>
+        <p class="featured-summary">{{ featured_article.summary }}</p>
+        <a class="read-more" href="{{ url_for('article_detail', slug=featured_article.slug) }}">Read full story →</a>
 
-        <aside class="stats-column">
-          <div class="stat-box">
-            <p class="stat-num">{{ total_articles }}</p>
-            <p class="stat-label">Published Articles</p>
+        {% if featured_article.consensus and featured_article.consensus.stats %}
+        {% set s = featured_article.consensus.stats %}
+        <div class="consensus-box">
+          <p class="c-label">Source consensus · {{ s.total }} outlets analyzed</p>
+          {% if featured_article.consensus.centralClaim %}<p class="c-claim">"{{ featured_article.consensus.centralClaim }}"</p>{% endif %}
+          <div class="c-bar">
+            {% if s.supports > 0 %}<div class="seg seg-agree" style="flex:{{ s.supports }}"></div>{% endif %}
+            {% if s.disputes > 0 %}<div class="seg seg-dispute" style="flex:{{ s.disputes }}"></div>{% endif %}
+            {% if s.mixed > 0 %}<div class="seg seg-mixed" style="flex:{{ s.mixed }}"></div>{% endif %}
+            {% if s.neutral > 0 %}<div class="seg seg-neutral" style="flex:{{ s.neutral }}"></div>{% endif %}
           </div>
-          <div class="editorial-note">
-            <p class="note-label">About ClearLens</p>
-            <p>AI-generated journalism grounded in real sources. Every article links back to its original reporting. Updated every 6 hours.</p>
+          <div class="c-legend">
+            {% if s.supports > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--agree)"></span>{{ s.supports }} agree</span>{% endif %}
+            {% if s.disputes > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--dispute)"></span>{{ s.disputes }} dispute</span>{% endif %}
+            {% if s.mixed > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--mixed)"></span>{{ s.mixed }} mixed</span>{% endif %}
+            {% if s.neutral > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--neutral-c)"></span>{{ s.neutral }} neutral</span>{% endif %}
           </div>
-        </aside>
-      </section>
-      {% endif %}
-
-      <section class="section-head delayed-2">
-        <h3>Latest News</h3>
-      </section>
-
-      <section class="dispatch-grid delayed-2">
-        {% if recent_articles %}
-          {% for article in recent_articles %}
-          <article class="dispatch-card">
-            <p class="dispatch-source">{{ article.source }}</p>
-            <h4><a href="{{ url_for('article_detail', slug=article.slug) }}">{{ article.headline }}</a></h4>
-            <p class="dispatch-copy">{{ article.summary[:240] }}{% if article.summary|length > 240 %}...{% endif %}</p>
-            <p class="dispatch-meta">{{ article.date_formatted }}</p>
-            <a class="muted-link" href="{{ url_for('article_detail', slug=article.slug) }}">Read article →</a>
-          </article>
-          {% endfor %}
-        {% else %}
-          <p style="grid-column: 1/-1; text-align: center; color: #575148;">No articles published yet. Check back soon.</p>
+        </div>
         {% endif %}
-      </section>
+      </div>
+      <div class="featured-sidebar">
+        <div class="sidebar-stat">
+          <p class="stat-num">{{ total_articles }}</p>
+          <p class="stat-label">Published Articles</p>
+        </div>
+        <div class="about-box">
+          <h4>About ClearLens</h4>
+          <p>Every article is built from 6+ real sources, analyzed for agreement and disagreement. No spin. No agenda. Just the full picture.</p>
+        </div>
+      </div>
+    </section>
+    {% endif %}
 
-      <footer class="page-footer delayed-3">
-        <p>ClearLens — AI-sourced news with full transparency</p>
-      </footer>
-    </main>
-  </body>
+    <div class="section-divider">
+      <h2>Latest Coverage</h2><hr/>
+    </div>
+
+    <div class="articles-grid">
+      {% if recent_articles %}
+        {% for article in recent_articles %}
+        <div class="article-card">
+          <p class="card-source">{{ article.source }}</p>
+          <h3 class="card-hl"><a href="{{ url_for('article_detail', slug=article.slug) }}">{{ article.headline }}</a></h3>
+          <p class="card-summary">{{ article.summary[:200] }}{% if article.summary|length > 200 %}...{% endif %}</p>
+          {% if article.consensus and article.consensus.stats %}
+          {% set s = article.consensus.stats %}
+          <div class="c-bar-mini">
+            {% if s.supports > 0 %}<div class="seg seg-agree" style="flex:{{ s.supports }}"></div>{% endif %}
+            {% if s.disputes > 0 %}<div class="seg seg-dispute" style="flex:{{ s.disputes }}"></div>{% endif %}
+            {% if s.mixed > 0 %}<div class="seg seg-mixed" style="flex:{{ s.mixed }}"></div>{% endif %}
+            {% if s.neutral > 0 %}<div class="seg seg-neutral" style="flex:{{ s.neutral }}"></div>{% endif %}
+          </div>
+          <div class="mini-leg">
+            {% if s.supports > 0 %}<span class="mini-leg-item"><span class="mini-dot" style="background:var(--agree)"></span>{{ s.supports }} agree</span>{% endif %}
+            {% if s.disputes > 0 %}<span class="mini-leg-item"><span class="mini-dot" style="background:var(--dispute)"></span>{{ s.disputes }} dispute</span>{% endif %}
+            {% if s.mixed > 0 %}<span class="mini-leg-item"><span class="mini-dot" style="background:var(--mixed)"></span>{{ s.mixed }} mixed</span>{% endif %}
+            {% if s.neutral > 0 %}<span class="mini-leg-item"><span class="mini-dot" style="background:var(--neutral-c)"></span>{{ s.neutral }} neutral</span>{% endif %}
+          </div>
+          {% endif %}
+          <p class="card-date">{{ article.date_formatted }}</p>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No articles yet. Check back soon.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>ClearLens — AI-sourced news analyzed across multiple outlets for full transparency</p>
+  </footer>
+</body>
 </html>

@@ -29,20 +29,13 @@ def init_web_tables():
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     with get_conn() as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS uploaded_articles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                source TEXT,
-                article_date TEXT,
-                url TEXT,
-                content TEXT NOT NULL,
-                attachment_name TEXT,
-                created_at TEXT NOT NULL
+                title TEXT NOT NULL, source TEXT, article_date TEXT,
+                url TEXT, content TEXT NOT NULL, attachment_name TEXT, created_at TEXT NOT NULL
             )
-            """
-        )
+        """)
         try:
             conn.execute("ALTER TABLE uploaded_articles ADD COLUMN attachment_name TEXT")
         except sqlite3.OperationalError:
@@ -50,8 +43,15 @@ def init_web_tables():
         conn.commit()
 
 
+def format_date(iso_string):
+    try:
+        dt = datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
+        return dt.strftime("%B %d, %Y")
+    except Exception:
+        return iso_string
+
+
 def load_generated_articles(limit=50):
-    """Load articles from generated_reports JSON files, newest first."""
     articles = []
     if not REPORTS_DIR.exists():
         return articles
@@ -66,9 +66,6 @@ def load_generated_articles(limit=50):
         try:
             data = json.loads(filepath.read_text(encoding="utf-8"))
             article = data.get("article", {})
-            social = data.get("social", {})
-
-            # Skip entries with no real headline or body
             if not article.get("headline") or not article.get("body"):
                 continue
 
@@ -81,7 +78,9 @@ def load_generated_articles(limit=50):
                 "source": data.get("source", "ClearLens"),
                 "source_url": data.get("sourceUrl", ""),
                 "generated_at": data.get("generatedAt", ""),
-                "social": social,
+                "date_formatted": format_date(data.get("generatedAt", "")),
+                "social": data.get("social", {}),
+                "consensus": data.get("consensus", {}),
                 "research_sources": data.get("researchSources", []),
             })
         except Exception:
@@ -90,25 +89,11 @@ def load_generated_articles(limit=50):
     return articles
 
 
-def format_date(iso_string):
-    """Format ISO timestamp to readable date."""
-    try:
-        dt = datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
-        return dt.strftime("%B %d, %Y")
-    except Exception:
-        return iso_string
-
-
 @app.route("/", methods=["GET"])
 def public_home():
     articles = load_generated_articles(limit=50)
-
-    for a in articles:
-        a["date_formatted"] = format_date(a["generated_at"])
-
     featured = articles[0] if articles else None
     recent = articles[1:13] if len(articles) > 1 else []
-
     return render_template(
         "public_home.html",
         featured_article=featured,
@@ -123,15 +108,12 @@ def article_detail(slug):
     filepath = REPORTS_DIR / f"{slug}.json"
     if not filepath.exists():
         abort(404)
-
     try:
         data = json.loads(filepath.read_text(encoding="utf-8"))
     except Exception:
         abort(404)
 
-    article = data.get("article", {})
-    social = data.get("social", {})
-
+    article_data = data.get("article", {})
     all_articles = load_generated_articles(limit=20)
     related = [a for a in all_articles if a["slug"] != slug][:6]
 
@@ -139,14 +121,15 @@ def article_detail(slug):
         "article.html",
         article={
             "slug": slug,
-            "headline": article.get("headline", ""),
-            "summary": article.get("summary", ""),
-            "body": article.get("body", ""),
-            "takeaway": article.get("takeaway", ""),
+            "headline": article_data.get("headline", ""),
+            "summary": article_data.get("summary", ""),
+            "body": article_data.get("body", ""),
+            "takeaway": article_data.get("takeaway", ""),
             "source": data.get("source", "ClearLens"),
             "source_url": data.get("sourceUrl", ""),
             "date_formatted": format_date(data.get("generatedAt", "")),
-            "social": social,
+            "social": data.get("social", {}),
+            "consensus": data.get("consensus", {}),
             "research_sources": data.get("researchSources", []),
         },
         related_articles=related,
@@ -156,9 +139,6 @@ def article_detail(slug):
 @app.route("/desk", methods=["GET"])
 def editorial_desk():
     articles = load_generated_articles(limit=100)
-    for a in articles:
-        a["date_formatted"] = format_date(a["generated_at"])
-
     return render_template(
         "desk.html",
         articles=articles,

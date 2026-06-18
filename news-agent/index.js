@@ -5,8 +5,13 @@ const RSSParser = require('rss-parser');
 const cron = require('node-cron');
 const { researchTopic } = require('./src/researcher');
 const { generateArticle, generateSocialContent, scoreSources, parseArticle, parseSocial } = require('./src/writer');
+const { postTweet } = require('./src/twitter');
 
 const parser = new RSSParser();
+
+// Set to true once you've tested and trust the pipeline.
+// While false, tweets are generated and saved but NOT posted.
+const AUTO_POST_TWITTER = process.env.AUTO_POST_TWITTER === 'true';
 
 const OUTPUT_DIR = path.join(__dirname, '..', 'generated_reports');
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -46,14 +51,13 @@ async function fetchTopStories() {
   return all.slice(0, 4);
 }
 
-function saveOutput(parsed, social, consensus, item, research) {
+function saveOutput(parsed, social, consensus, item, research, tweetStatus) {
   const slug = (parsed.headline || item.title)
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const filename = `${timestamp}-${slug}.json`;
   const filepath = path.join(OUTPUT_DIR, filename);
 
-  // Calculate consensus stats
   const stances = (consensus.sources || []).map(s => s.stance);
   const supports = stances.filter(s => s === 'supports').length;
   const disputes = stances.filter(s => s === 'disputes').length;
@@ -73,11 +77,9 @@ function saveOutput(parsed, social, consensus, item, research) {
       sources: consensus.sources || [],
     },
     researchSources: research.sources.map(s => ({
-      title: s.title,
-      url: s.url,
-      outlet: s.outlet,
-      publishedAt: s.publishedAt,
+      title: s.title, url: s.url, outlet: s.outlet, publishedAt: s.publishedAt,
     })),
+    tweetStatus: tweetStatus,
   };
 
   fs.writeFileSync(filepath, JSON.stringify(output, null, 2));
@@ -87,6 +89,7 @@ function saveOutput(parsed, social, consensus, item, research) {
 
 async function runPipeline() {
   console.log(`\n[${new Date().toISOString()}] Starting ClearLens pipeline...`);
+  console.log(`Auto-post to Twitter: ${AUTO_POST_TWITTER ? 'ON' : 'OFF (dry run)'}`);
 
   const processed = loadProcessed();
   const stories = await fetchTopStories();
@@ -105,6 +108,15 @@ async function runPipeline() {
       console.log('  Fetching multiple sources...');
       const research = await researchTopic(item);
       console.log(`  Found ${research.sources.length} sources.`);
+
+      // Hallucination guard: require at least 3 sources with real content
+      const sourcesWithContent = research.sources.filter(
+        s => (s.content || '').length > 150
+      );
+      if (sourcesWithContent.length < 2) {
+        console.warn(`  Only ${sourcesWithContent.length} sources had real content. Skipping to avoid hallucination risk.`);
+        continue;
+      }
 
       if (research.sources.length === 0) {
         console.warn('  No sources found. Skipping.');
@@ -130,8 +142,23 @@ async function runPipeline() {
 
       console.log('  Generating social content...');
       const social = await generateSocialContent(rawArticle, parsed.headline);
+      const parsedSocial = parseSocial(social);
 
-      saveOutput(parsed, social, consensus, item, research);
+      let tweetStatus = { posted: false, reason: 'auto-post disabled' };
+
+      if (AUTO_POST_TWITTER && parsedSocial.twitter) {
+        try {
+          console.log('  Posting to Twitter...');
+          await postTweet(parsedSocial.twitter);
+          tweetStatus = { posted: true, postedAt: new Date().toISOString() };
+          console.log('  Tweet posted successfully.');
+        } catch (err) {
+          tweetStatus = { posted: false, reason: err.message };
+          console.warn(`  Tweet failed: ${err.message}`);
+        }
+      }
+
+      saveOutput(parsed, social, consensus, item, research, tweetStatus);
       processed.add(item.link);
       saveProcessed(processed);
 

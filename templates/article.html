@@ -1,146 +1,248 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ article.headline }} – ClearLens</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-    <style>
-      .article-body { max-width: 720px; margin: 0 auto; }
-      .article-body p { margin-bottom: 1.4em; line-height: 1.8; }
-      .takeaway-box { background: #f5f0e8; border-left: 4px solid #8b1a1a; padding: 1.2em 1.5em; margin: 2em 0; border-radius: 2px; }
-      .takeaway-box p { margin: 0; font-weight: 600; }
-      .sources-section { margin-top: 2em; padding-top: 1.5em; border-top: 1px solid #e0d8cc; }
-      .sources-section h4 { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 1em; }
-      .source-link { display: block; font-size: 0.9em; color: #8b1a1a; margin-bottom: 0.5em; word-break: break-all; }
-      .social-section { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #e0d8cc; }
-      .social-section h3 { font-size: 1em; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 1.5em; }
-      .social-card { background: #faf8f4; border: 1px solid #e0d8cc; border-radius: 6px; padding: 1.2em; margin-bottom: 1em; }
-      .social-card .platform { font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #8b1a1a; margin-bottom: 0.6em; }
-      .social-card p { font-size: 0.9em; line-height: 1.6; margin: 0; white-space: pre-wrap; }
-      .copy-btn { font-size: 0.75em; background: #8b1a1a; color: white; border: none; padding: 0.3em 0.8em; border-radius: 3px; cursor: pointer; margin-top: 0.6em; }
-      .copy-btn:hover { background: #6b1414; }
-      .related-section { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #e0d8cc; }
-      .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2em; margin-top: 1em; }
-      .related-card h5 { font-size: 0.95em; margin: 0.3em 0; }
-      .related-card p { font-size: 0.8em; color: #888; margin: 0; }
-    </style>
-  </head>
-  <body>
-    <main class="page reveal">
-      <header class="masthead" style="padding-bottom: 1em;">
-        <a href="{{ url_for('public_home') }}" style="font-size: 0.85em; color: #8b1a1a; text-decoration: none;">← Back to ClearLens</a>
-        <h1 style="font-size: 1.4em; margin-top: 0.5em;">ClearLens</h1>
-      </header>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ article.headline }} — ClearLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --ink:#0f0e0c;--ink-2:#5a5751;--ink-3:#9a9690;
+      --paper:#faf8f4;--paper-2:#f2ede4;--paper-3:#e0d8cc;
+      --accent:#c0392b;
+      --agree:#1a7a4a;--agree-bg:#e8f5ee;
+      --dispute:#c0392b;--dispute-bg:#fbeae8;
+      --mixed:#b07d12;--mixed-bg:#fef6e4;
+      --neutral-c:#9a9690;
+    }
+    body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:400;line-height:1.6;min-height:100vh}
+    .site-nav{border-bottom:2px solid var(--ink);padding:.75rem 2.5rem;display:flex;align-items:center;justify-content:space-between}
+    .nav-back{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;display:flex;align-items:center;gap:.4rem}
+    .nav-back:hover{color:var(--accent)}
+    .nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--ink);text-decoration:none}
+    .article-wrap{max-width:760px;margin:0 auto;padding:3rem 2.5rem}
+    .article-kicker{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
+    .article-headline{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:900;line-height:1.1;margin-bottom:1.25rem}
+    .article-byline{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--ink-3);margin-bottom:2rem;flex-wrap:wrap}
+    .byline-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-3)}
+    .byline-link{color:var(--accent);text-decoration:none}
+    .byline-link:hover{text-decoration:underline}
+    .article-summary{font-size:1.15rem;line-height:1.8;color:var(--ink-2);font-weight:300;border-left:3px solid var(--accent);padding-left:1.25rem;margin-bottom:2.5rem}
+    .article-divider{border:none;border-top:0.5px solid var(--paper-3);margin:2rem 0}
+    .article-body p{font-size:1rem;line-height:1.85;color:var(--ink);margin-bottom:1.5rem}
+    .takeaway-box{background:var(--paper-2);border-left:4px solid var(--accent);padding:1.25rem 1.5rem;margin:2.5rem 0;border-radius:2px}
+    .takeaway-box .t-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+    .takeaway-box p{font-size:.95rem;color:var(--ink);font-weight:500;margin:0}
+    .consensus-section{background:var(--paper-2);border:0.5px solid var(--paper-3);border-radius:6px;padding:1.5rem;margin:2.5rem 0}
+    .c-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .c-title{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+    .c-count{font-size:.72rem;color:var(--ink-3)}
+    .c-claim{font-size:.9rem;color:var(--ink-2);font-style:italic;margin-bottom:1.25rem;line-height:1.6}
+    .c-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin-bottom:.75rem}
+    .seg{border-radius:3px}
+    .seg-agree{background:var(--agree)}
+    .seg-dispute{background:var(--dispute)}
+    .seg-mixed{background:var(--mixed)}
+    .seg-neutral{background:var(--paper-3)}
+    .c-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+    .c-legend-item{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--ink-2)}
+    .c-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .c-sources{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem}
+    .c-source-row{display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--paper);border-radius:4px;border:0.5px solid var(--paper-3)}
+    .c-outlet{font-size:.8rem;font-weight:500;flex:1;color:var(--ink)}
+    .c-stance{font-size:.7rem;font-weight:500;padding:.2rem .6rem;border-radius:3px;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
+    .stance-supports{background:var(--agree-bg);color:var(--agree)}
+    .stance-disputes{background:var(--dispute-bg);color:var(--dispute)}
+    .stance-mixed{background:var(--mixed-bg);color:var(--mixed)}
+    .stance-neutral{background:var(--paper-2);color:var(--neutral-c)}
+    .c-reason{font-size:.75rem;color:var(--ink-3);flex:2}
+    .sources-section{margin-top:2rem;padding-top:1.5rem;border-top:0.5px solid var(--paper-3)}
+    .sources-section h4{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1rem}
+    .source-link{display:block;font-size:.85rem;color:var(--accent);margin-bottom:.4rem;word-break:break-all;text-decoration:none}
+    .source-link:hover{text-decoration:underline}
+    .social-section{margin-top:2.5rem;padding-top:1.5rem;border-top:0.5px solid var(--paper-3)}
+    .social-section h3{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1.25rem}
+    .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .social-card{background:var(--paper-2);border:0.5px solid var(--paper-3);border-radius:6px;padding:1rem 1.1rem}
+    .social-platform{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+    .social-text{font-size:.82rem;line-height:1.6;color:var(--ink);white-space:pre-wrap;margin-bottom:.6rem}
+    .copy-btn{font-size:.7rem;background:var(--ink);color:var(--paper);border:none;padding:.25rem .7rem;border-radius:3px;cursor:pointer;transition:background .15s}
+    .copy-btn:hover{background:var(--accent)}
+    .related-section{max-width:1100px;margin:0 auto;padding:2rem 2.5rem 3rem;border-top:1px solid var(--paper-3)}
+    .related-label{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1.5rem}
+    .related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:0.5px solid var(--paper-3);border-left:0.5px solid var(--paper-3)}
+    .related-card{padding:1.25rem;border-right:0.5px solid var(--paper-3);border-bottom:0.5px solid var(--paper-3);transition:background .15s}
+    .related-card:hover{background:var(--paper-2)}
+    .related-source{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+    .related-hl{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;line-height:1.3;margin-bottom:.4rem}
+    .related-hl a{color:var(--ink);text-decoration:none}
+    .related-hl a:hover{color:var(--accent)}
+    .related-date{font-size:.68rem;color:var(--ink-3)}
+    .site-footer{border-top:2px solid var(--ink);padding:2rem 2.5rem;text-align:center}
+    .site-footer p{font-size:.78rem;color:var(--ink-3);letter-spacing:.05em}
+    @media(max-width:700px){
+      .article-wrap{padding:2rem 1.25rem}
+      .social-grid{grid-template-columns:1fr}
+      .related-grid{grid-template-columns:1fr}
+      .site-nav{padding:.75rem 1.25rem}
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a class="nav-back" href="{{ url_for('public_home') }}">← ClearLens</a>
+    <a class="nav-logo" href="{{ url_for('public_home') }}">ClearLens</a>
+    <span style="width:80px"></span>
+  </nav>
 
-      <article class="article-body">
-        <p class="kicker" style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.1em; color: #8b1a1a; margin-bottom: 0.5em;">{{ article.source }}</p>
-        <h2 style="font-size: 2em; line-height: 1.2; margin-bottom: 0.5em;">{{ article.headline }}</h2>
-        <p class="byline" style="color: #888; font-size: 0.85em; margin-bottom: 2em;">{{ article.date_formatted }}{% if article.source_url %} · <a href="{{ article.source_url }}" target="_blank" rel="noopener" style="color: #8b1a1a;">Original source</a>{% endif %}</p>
+  <div class="article-wrap">
+    <p class="article-kicker">{{ article.source }}</p>
+    <h1 class="article-headline">{{ article.headline }}</h1>
+    <div class="article-byline">
+      <span>{{ article.date_formatted }}</span>
+      {% if article.consensus and article.consensus.stats %}
+      <span class="byline-dot"></span>
+      <span>{{ article.consensus.stats.total }} sources analyzed</span>
+      {% endif %}
+      {% if article.source_url %}
+      <span class="byline-dot"></span>
+      <a class="byline-link" href="{{ article.source_url }}" target="_blank" rel="noopener">Original source ↗</a>
+      {% endif %}
+    </div>
 
-        <p style="font-size: 1.1em; font-weight: 600; line-height: 1.7; margin-bottom: 2em;">{{ article.summary }}</p>
+    <p class="article-summary">{{ article.summary }}</p>
 
-        {% for paragraph in article.body.split('\n\n') %}
-          {% if paragraph.strip() %}
-          <p>{{ paragraph.strip() }}</p>
-          {% endif %}
+    {% if article.consensus and article.consensus.stats %}
+    {% set s = article.consensus.stats %}
+    <div class="consensus-section">
+      <div class="c-header">
+        <span class="c-title">Source consensus</span>
+        <span class="c-count">{{ s.total }} outlets analyzed</span>
+      </div>
+      {% if article.consensus.centralClaim %}<p class="c-claim">"{{ article.consensus.centralClaim }}"</p>{% endif %}
+      <div class="c-bar">
+        {% if s.supports > 0 %}<div class="seg seg-agree" style="flex:{{ s.supports }}"></div>{% endif %}
+        {% if s.disputes > 0 %}<div class="seg seg-dispute" style="flex:{{ s.disputes }}"></div>{% endif %}
+        {% if s.mixed > 0 %}<div class="seg seg-mixed" style="flex:{{ s.mixed }}"></div>{% endif %}
+        {% if s.neutral > 0 %}<div class="seg seg-neutral" style="flex:{{ s.neutral }}"></div>{% endif %}
+      </div>
+      <div class="c-legend">
+        {% if s.supports > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--agree)"></span>{{ s.supports }} support the claim</span>{% endif %}
+        {% if s.disputes > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--dispute)"></span>{{ s.disputes }} dispute it</span>{% endif %}
+        {% if s.mixed > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--mixed)"></span>{{ s.mixed }} mixed</span>{% endif %}
+        {% if s.neutral > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--neutral-c)"></span>{{ s.neutral }} neutral</span>{% endif %}
+      </div>
+      {% if article.consensus.sources %}
+      <div class="c-sources">
+        {% for src in article.consensus.sources %}
+        <div class="c-source-row">
+          <span class="c-outlet">{{ src.outlet }}</span>
+          <span class="c-stance stance-{{ src.stance }}">{{ src.stance }}</span>
+          {% if src.reason %}<span class="c-reason">{{ src.reason }}</span>{% endif %}
+        </div>
         {% endfor %}
-
-        {% if article.takeaway %}
-        <div class="takeaway-box">
-          <p>Key takeaway: {{ article.takeaway }}</p>
-        </div>
-        {% endif %}
-
-        {% if article.research_sources %}
-        <div class="sources-section">
-          <h4>Sources</h4>
-          {% for source in article.research_sources %}
-            {% if source.url %}
-            <a class="source-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title or source.url }}</a>
-            {% endif %}
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if article.social %}
-        <div class="social-section">
-          <h3>Social Media Posts</h3>
-
-          {% if article.social.twitter %}
-          <div class="social-card">
-            <div class="platform">Twitter / X</div>
-            <p>{{ article.social.twitter }}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
-          </div>
-          {% endif %}
-
-          {% if article.social.linkedin %}
-          <div class="social-card">
-            <div class="platform">LinkedIn</div>
-            <p>{{ article.social.linkedin }}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
-          </div>
-          {% endif %}
-
-          {% if article.social.instagram %}
-          <div class="social-card">
-            <div class="platform">Instagram</div>
-            <p>{{ article.social.instagram }}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
-          </div>
-          {% endif %}
-
-          {% if article.social.tiktok %}
-          <div class="social-card">
-            <div class="platform">TikTok Script</div>
-            <p>{{ article.social.tiktok }}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
-          </div>
-          {% endif %}
-
-          {% if article.social.facebook %}
-          <div class="social-card">
-            <div class="platform">Facebook</div>
-            <p>{{ article.social.facebook }}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
-          </div>
-          {% endif %}
-
-          {% if article.social.threads %}
-          <div class="social-card">
-            <div class="platform">Threads</div>
-            <p>{{ article.social.threads }}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
-          </div>
-          {% endif %}
-
-        </div>
-        {% endif %}
-
-      </article>
-
-      {% if related_articles %}
-      <div class="related-section">
-        <h3 style="font-size: 1em; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">More from ClearLens</h3>
-        <div class="related-grid">
-          {% for r in related_articles %}
-          <div class="related-card">
-            <p style="font-size: 0.75em; color: #8b1a1a; text-transform: uppercase; letter-spacing: 0.08em;">{{ r.source }}</p>
-            <h5><a href="{{ url_for('article_detail', slug=r.slug) }}" style="color: inherit; text-decoration: none;">{{ r.headline }}</a></h5>
-            <p>{{ r.date_formatted }}</p>
-          </div>
-          {% endfor %}
-        </div>
       </div>
       {% endif %}
+    </div>
+    {% endif %}
 
-      <footer class="page-footer" style="margin-top: 3em;">
-        <p>ClearLens — AI-sourced news with full transparency</p>
-      </footer>
-    </main>
-  </body>
+    <hr class="article-divider"/>
+
+    <div class="article-body">
+      {% for paragraph in article.body.split('\n\n') %}
+        {% if paragraph.strip() %}<p>{{ paragraph.strip() }}</p>{% endif %}
+      {% endfor %}
+    </div>
+
+    {% if article.takeaway %}
+    <div class="takeaway-box">
+      <p class="t-label">Key takeaway</p>
+      <p>{{ article.takeaway }}</p>
+    </div>
+    {% endif %}
+
+    {% if article.research_sources %}
+    <div class="sources-section">
+      <h4>Sources</h4>
+      {% for source in article.research_sources %}
+        {% if source.url %}
+        <a class="source-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title or source.url }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if article.social %}
+    <div class="social-section">
+      <h3>Ready-to-post social content</h3>
+      <div class="social-grid">
+        {% if article.social.twitter %}
+        <div class="social-card">
+          <p class="social-platform">Twitter / X</p>
+          <p class="social-text">{{ article.social.twitter }}</p>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+        </div>
+        {% endif %}
+        {% if article.social.linkedin %}
+        <div class="social-card">
+          <p class="social-platform">LinkedIn</p>
+          <p class="social-text">{{ article.social.linkedin }}</p>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+        </div>
+        {% endif %}
+        {% if article.social.instagram %}
+        <div class="social-card">
+          <p class="social-platform">Instagram</p>
+          <p class="social-text">{{ article.social.instagram }}</p>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+        </div>
+        {% endif %}
+        {% if article.social.tiktok %}
+        <div class="social-card">
+          <p class="social-platform">TikTok Script</p>
+          <p class="social-text">{{ article.social.tiktok }}</p>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+        </div>
+        {% endif %}
+        {% if article.social.facebook %}
+        <div class="social-card">
+          <p class="social-platform">Facebook</p>
+          <p class="social-text">{{ article.social.facebook }}</p>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+        </div>
+        {% endif %}
+        {% if article.social.threads %}
+        <div class="social-card">
+          <p class="social-platform">Threads</p>
+          <p class="social-text">{{ article.social.threads }}</p>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if related_articles %}
+  <div class="related-section">
+    <p class="related-label">More from ClearLens</p>
+    <div class="related-grid">
+      {% for r in related_articles %}
+      <div class="related-card">
+        <p class="related-source">{{ r.source }}</p>
+        <h3 class="related-hl"><a href="{{ url_for('article_detail', slug=r.slug) }}">{{ r.headline }}</a></h3>
+        <p class="related-date">{{ r.date_formatted }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <footer class="site-footer">
+    <p>ClearLens — AI-sourced news analyzed across multiple outlets for full transparency</p>
+  </footer>
+</body>
 </html>

@@ -1,0 +1,105 @@
+{
+  "generatedAt": "2026-06-18T05:41:29.024Z",
+  "source": "BBC News",
+  "sourceUrl": "https://www.bbc.com/news/articles/cvgmqzr6p9mo?at_medium=RSS&at_campaign=rss",
+  "article": {
+    "headline": "US and Iran Reach Preliminary Agreement, Details Remain Unclear",
+    "summary": "The United States and Iran have signed a preliminary agreement aiming to end the war between the two countries. The deal's specifics are still emerging, with different sources providing varying details on its terms. While some reports suggest a simple trade, such as Iran reopening the Strait of Hormuz, others indicate that the agreement may involve additional parties, including Israel.",
+    "body": "According to CNN, the United States has released the official text of the memorandum of understanding reached with Iran. However, the details of the agreement remain unclear, with different sources providing varying information. The BBC reports that the US and Iranian presidents have signed a deal aiming to end the war, but does not provide further specifics. The New York Times suggests that the agreement involves a trade, with Iran reopening the Strait of Hormuz in exchange for unspecified concessions.\n\nThe Guardian reports that Tehran has announced plans to charge ships in the Strait of Hormuz after 60 days, which may be related to the agreement. However, it is unclear how this development fits into the broader context of the deal. NDTV's coverage of the agreement is unavailable due to access restrictions. PBS News, on the other hand, reports that Iran says the deal requires Israel to withdraw from Lebanon, which would involve a third party in the agreement.\n\nThe involvement of Israel in the agreement is a point of contention, with some sources suggesting that it is a key component of the deal. However, it is unclear whether Israel has agreed to withdraw from Lebanon or what the terms of such a withdrawal would be. The lack of clarity on the agreement's specifics has led to confusion and speculation about its implications.\n\nAs more information becomes available, it is likely that the details of the agreement will become clearer. However, for now, the exact terms of the deal remain uncertain. The agreement's impact on the region and the relationships between the parties involved will depend on the specifics of the deal, which are still emerging.\n\nThe US-Iran agreement has the potential to be a significant development in the region, but its success will depend on the details of the deal and the willingness of all parties to comply with its terms. The involvement of additional parties, such as Israel, adds complexity to the agreement and may affect its chances of success.\n\nBODY (continued): The reaction to the agreement has been mixed, with some hailing it as a major breakthrough and others expressing skepticism about its chances of success. The agreement's impact on the region will depend on its ability to address the underlying issues that have driven the conflict between the US and Iran.",
+    "takeaway": "The US-Iran agreement's specifics remain unclear, with different sources providing varying details on its terms, and its success will depend on the willingness of all parties to comply with its terms.",
+    "raw": "HEADLINE: US and Iran Reach Preliminary Agreement, Details Remain Unclear\n\nSUMMARY: The United States and Iran have signed a preliminary agreement aiming to end the war between the two countries. The deal's specifics are still emerging, with different sources providing varying details on its terms. While some reports suggest a simple trade, such as Iran reopening the Strait of Hormuz, others indicate that the agreement may involve additional parties, including Israel.\n\nBODY: According to CNN, the United States has released the official text of the memorandum of understanding reached with Iran. However, the details of the agreement remain unclear, with different sources providing varying information. The BBC reports that the US and Iranian presidents have signed a deal aiming to end the war, but does not provide further specifics. The New York Times suggests that the agreement involves a trade, with Iran reopening the Strait of Hormuz in exchange for unspecified concessions.\n\nThe Guardian reports that Tehran has announced plans to charge ships in the Strait of Hormuz after 60 days, which may be related to the agreement. However, it is unclear how this development fits into the broader context of the deal. NDTV's coverage of the agreement is unavailable due to access restrictions. PBS News, on the other hand, reports that Iran says the deal requires Israel to withdraw from Lebanon, which would involve a third party in the agreement.\n\nThe involvement of Israel in the agreement is a point of contention, with some sources suggesting that it is a key component of the deal. However, it is unclear whether Israel has agreed to withdraw from Lebanon or what the terms of such a withdrawal would be. The lack of clarity on the agreement's specifics has led to confusion and speculation about its implications.\n\nAs more information becomes available, it is likely that the details of the agreement will become clearer. However, for now, the exact terms of the deal remain uncertain. The agreement's impact on the region and the relationships between the parties involved will depend on the specifics of the deal, which are still emerging.\n\nThe US-Iran agreement has the potential to be a significant development in the region, but its success will depend on the details of the deal and the willingness of all parties to comply with its terms. The involvement of additional parties, such as Israel, adds complexity to the agreement and may affect its chances of success.\n\nBODY (continued): The reaction to the agreement has been mixed, with some hailing it as a major breakthrough and others expressing skepticism about its chances of success. The agreement's impact on the region will depend on its ability to address the underlying issues that have driven the conflict between the US and Iran.\n\nTAKEAWAY: The US-Iran agreement's specifics remain unclear, with different sources providing varying details on its terms, and its success will depend on the willingness of all parties to comply with its terms."
+  },
+  "social": {
+    "twitter": "US and Iran reach preliminary agreement, but details remain unclear. Will this deal bring an end to the war? #USIran #PeaceTalks",
+    "linkedin": "The United States and Iran have signed a preliminary agreement, marking a significant development in the region. However, the specifics of the deal remain unclear, with different sources providing varying details. As more information becomes available, it will be crucial to assess the agreement's potential impact on the region and the relationships between the parties involved. #USIran #InternationalRelations #PeaceAgreement",
+    "instagram": "Breaking News: US and Iran reach preliminary agreement! But what does it really mean? Details are still emerging, and it's unclear how this will affect the region. Stay tuned for updates and follow us for unbiased news! #USIran #PeaceTalks #InternationalNews #BreakingNews #NewsUpdate #CurrentEvents",
+    "tiktok": "(Upbeat background music starts playing. The host appears on screen with a friendly smile)\nHost: \"Hey guys, have you heard the latest news? The US and Iran have reached a preliminary agreement! But here's the thing - we don't really know what it means yet. Different sources are saying different things, so we're waiting for more info. Stay tuned, and we'll keep you updated!\"",
+    "facebook": "The US and Iran have signed a preliminary agreement, but the details are still unclear. What do you think this could mean for the region? Share your thoughts! #USIran #PeaceTalks",
+    "threads": "US and Iran reach preliminary agreement, but details are scarce. What are your thoughts on this development? #USIran #InternationalNews"
+  },
+  "consensus": {
+    "centralClaim": "The US and Iran have reached an agreement to end their conflict",
+    "summary": "Most sources support or report neutrally on the central claim of a US-Iran agreement, with only The New York Times offering a slightly mixed perspective",
+    "stats": {
+      "supports": 3,
+      "disputes": 0,
+      "mixed": 1,
+      "neutral": 2,
+      "total": 6
+    },
+    "sources": [
+      {
+        "outlet": "CNN",
+        "stance": "neutral",
+        "reason": "CNN provides a factual report on the release of the official text of the memorandum of understanding without expressing a clear opinion or bias"
+      },
+      {
+        "outlet": "BBC",
+        "stance": "supports",
+        "reason": "The BBC reports on the deal as a done agreement aiming to end the war, implying a positive stance towards the agreement"
+      },
+      {
+        "outlet": "The New York Times",
+        "stance": "mixed",
+        "reason": "The New York Times describes the agreement as a trade, which could be seen as a neutral or slightly negative perspective, but does not outright dispute the claim"
+      },
+      {
+        "outlet": "NDTV",
+        "stance": "neutral",
+        "reason": "NDTV's content is inaccessible, but the URL suggests a report on the US-Iran peace deal without indicating a clear stance"
+      },
+      {
+        "outlet": "The Guardian",
+        "stance": "supports",
+        "reason": "The Guardian reports on the peace deal and its implications, such as Tehran's plans regarding the Strait of Hormuz, without expressing significant skepticism or dispute"
+      },
+      {
+        "outlet": "PBS",
+        "stance": "supports",
+        "reason": "PBS reports on the deal as requiring Israel to withdraw from Lebanon, presenting the agreement as a factual development without clear dispute"
+      }
+    ]
+  },
+  "researchSources": [
+    {
+      "title": "US releases official agreement with Iran. Read the 14-point text",
+      "url": "https://www.cnn.com/2026/06/17/middleeast/us-iran-war-mou-text-intl",
+      "outlet": "CNN",
+      "publishedAt": "19 hours ago"
+    },
+    {
+      "title": "Trump and Iran's president sign initial deal aiming to end war",
+      "url": "https://www.bbc.com/news/articles/crr8z4z2er9o",
+      "outlet": "BBC",
+      "publishedAt": "3 hours ago"
+    },
+    {
+      "title": "Opinion | Trump’s Iran Deal Isn’t Perfect. It Doesn’t Need to Be.",
+      "url": "https://www.nytimes.com/2026/06/18/opinion/iran-nuclear-deal-trump.html",
+      "outlet": "The New York Times",
+      "publishedAt": "41 minutes ago"
+    },
+    {
+      "title": "\"Very Wise Man Once Said...\": US Reporter Plays Back Trump's 2020 Iran Tweet",
+      "url": "https://www.ndtv.com/world-news/us-iran-peace-deal-donald-trump-very-wise-man-once-said-fox-news-peter-doocy-11652619",
+      "outlet": "NDTV",
+      "publishedAt": "1 hour ago"
+    },
+    {
+      "title": "Middle East crisis live: Tehran says it will charge ships in strait of Hormuz after 60 days; US-Iran presidents sign peace deal",
+      "url": "https://www.theguardian.com/world/live/2026/jun/18/middle-east-crisis-live-us-iran-presidents-sign-peace-deal-mou-trump-tehran-strait-of-hormuz-toll-lebanon-israel?CMP=share_btn_url&page=with%3Ablock-6a3378dc8f08c4f67d4d27a8",
+      "outlet": "The Guardian",
+      "publishedAt": "35 minutes ago"
+    },
+    {
+      "title": "Iran says the deal to end the war with the U.S. requires Israel to withdraw from Lebanon",
+      "url": "https://www.pbs.org/newshour/world/iran-says-the-deal-to-end-the-war-with-the-u-s-requires-israel-to-withdraw-from-lebanon",
+      "outlet": "PBS",
+      "publishedAt": "1 day ago"
+    }
+  ],
+  "tweetStatus": {
+    "posted": false,
+    "reason": "auto-post disabled"
+  }
+}
