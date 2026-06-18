@@ -34,6 +34,7 @@ function groqRequest(messages, maxTokens = 2000) {
   });
 }
 
+// Score each source's stance on the central claim
 async function scoreSources(sources, topic) {
   if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY is not set');
 
@@ -64,6 +65,7 @@ Respond ONLY with valid JSON in this exact format, nothing else:
     const clean = raw.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
   } catch (err) {
+    // Return a basic structure if parsing fails
     return {
       centralClaim: topic,
       sources: sources.map(s => ({ outlet: s.outlet, stance: 'neutral', reason: 'Analysis unavailable' })),
@@ -72,13 +74,7 @@ Respond ONLY with valid JSON in this exact format, nothing else:
   }
 }
 
-// Count how much real (non-snippet) content we actually have to work with
-function assessContentDepth(sources) {
-  const richSources = sources.filter(s => (s.content || '').length > 400);
-  const totalChars = sources.reduce((sum, s) => sum + (s.content || s.snippet || '').length, 0);
-  return { richCount: richSources.length, totalChars };
-}
-
+// Generate the main article
 async function generateArticle(item, research) {
   if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY is not set');
 
@@ -88,47 +84,33 @@ async function generateArticle(item, research) {
 
   if (!sourceContent || sourceContent.length < 50) throw new Error('Not enough source content');
 
-  // Scale target word count to how much real material exists.
-  // Thin source material forced into a fixed-length article is exactly
-  // what produces padding, repetition, and leaked formatting labels.
-  const { richCount, totalChars } = assessContentDepth(research.sources);
-  let targetWords = '400-550';
-  if (richCount <= 2 || totalChars < 2500) {
-    targetWords = '200-300';
-  } else if (richCount <= 4) {
-    targetWords = '300-450';
-  }
-
   const systemPrompt = `You are a senior journalist at ClearLens, an AI transparency news platform committed to unbiased reporting. Your job is to synthesize multiple sources into a single balanced article.
 
 STRICT RULES:
 - Use ONLY facts present in the provided sources. Never invent or hallucinate.
 - Present ALL perspectives fairly. Do not favor any political side.
-- When sources disagree, clearly explain both positions, stated once each. Never restate the same point in different words to fill space.
-- If the available source material is thin, write a SHORTER article rather than padding with repetition or speculation. A shorter accurate article is always better than a longer padded one.
+- When sources disagree, clearly explain both positions.
 - Never use placeholder text like "Development 1" or "More research is needed."
-- Never include section labels, headers, or meta-commentary like "BODY (continued)" anywhere in the body text itself. Write the BODY as one continuous flow of paragraphs with no internal labels.
-- Target length: ${targetWords} words. Do not exceed this to compensate for thin material.
+- Write in plain, direct journalism prose. 400-550 words.
 - Do not include a byline or publication name.
 
-OUTPUT FORMAT (use exactly these headers, each appearing exactly ONCE):
+OUTPUT FORMAT (use exactly these headers):
 HEADLINE: [specific, neutral headline]
 SUMMARY: [2-3 sentence balanced summary]
-BODY: [continuous paragraphs presenting all perspectives, separated by blank lines, no internal headers or labels]
+BODY: [5-6 paragraphs presenting all perspectives]
 TAKEAWAY: [one neutral sentence summarizing the state of evidence]`;
 
   const userPrompt = `Write a balanced ClearLens article synthesizing these ${research.sources.length} sources on: "${research.query}"
 
 ${sourceContent}`;
 
-  const raw = await groqRequest([
+  return groqRequest([
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ], 2000);
-
-  return raw;
 }
 
+// Generate social content
 async function generateSocialContent(article, headline) {
   if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY is not set');
 
@@ -150,62 +132,15 @@ THREADS: [casual, max 500 chars, 2-3 hashtags]`;
   ], 1500);
 }
 
-// Strip any leaked section labels or repeated header artifacts from body text
-function cleanBodyText(body) {
-  if (!body) return '';
-  return body
-    // Remove leaked labels like "BODY (continued):", "BODY:", "CONTINUED:"
-    .replace(/\n?\s*BODY\s*\(continued\)\s*:?\s*/gi, '\n\n')
-    .replace(/\n?\s*\(continued\)\s*:?\s*/gi, '\n\n')
-    .replace(/^\s*BODY\s*:?\s*/gi, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-// Remove near-duplicate paragraphs that restate the same point
-function dedupeParagraphs(body) {
-  const paragraphs = body.split('\n\n').map(p => p.trim()).filter(Boolean);
-  const kept = [];
-  const seenSignatures = [];
-
-  for (const para of paragraphs) {
-    const words = para.toLowerCase().split(/\s+/).filter(w => w.length > 4);
-    const signature = new Set(words);
-
-    let isDuplicate = false;
-    for (const seen of seenSignatures) {
-      const overlap = [...signature].filter(w => seen.has(w)).length;
-      const overlapRatio = overlap / Math.max(signature.size, 1);
-      if (overlapRatio > 0.55) {
-        isDuplicate = true;
-        break;
-      }
-    }
-
-    if (!isDuplicate) {
-      kept.push(para);
-      seenSignatures.push(signature);
-    }
-  }
-
-  return kept.join('\n\n');
-}
-
 function parseArticle(raw) {
-  // Take only the FIRST occurrence of each header to prevent duplicated sections
   const get = (key) => {
-    const match = raw.match(new RegExp(`${key}:\\s*([\\s\\S]*?)(?=\\n[A-Z][A-Z\\s]*\\(?[a-z]*\\)?:|$)`));
+    const match = raw.match(new RegExp(`${key}:\\s*([\\s\\S]*?)(?=\\n[A-Z]+:|$)`));
     return match ? match[1].trim() : '';
   };
-
-  let body = get('BODY');
-  body = cleanBodyText(body);
-  body = dedupeParagraphs(body);
-
   return {
     headline: get('HEADLINE'),
     summary: get('SUMMARY'),
-    body,
+    body: get('BODY'),
     takeaway: get('TAKEAWAY'),
     raw,
   };
