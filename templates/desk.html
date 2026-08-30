@@ -88,7 +88,6 @@
             </p>
             <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem;">
               <a class="muted-link" href="{{ url_for('article_detail', article_id=article['id']) }}">Read article</a>
-              <button class="desk-btn" data-research-btn="{{ article['id'] }}" data-depth="medium" title="Run cross-research on multiple sources">🔍 Research</button>
             </div>
           </article>
           {% endfor %}
@@ -158,6 +157,5 @@
         cursor: not-allowed;
       }
     </style>
-    <script src="{{ url_for('static', filename='cross_research.js') }}"></script>
   </body>
 </html>

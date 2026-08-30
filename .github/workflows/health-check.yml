@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Check site is up
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://your-app.vercel.app)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://clearlens.ai)
           if [ "$response" != "200" ]; then
             curl -s -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
               -H "Content-Type: application/json" \

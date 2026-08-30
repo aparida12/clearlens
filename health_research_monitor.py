@@ -535,7 +535,19 @@ def fetch_pubmed_items(term, max_results):
     if NCBI_API_KEY:
         params["api_key"] = NCBI_API_KEY
 
-    response = requests.get(search_url, params=params, timeout=20)
+    def get_with_retry(url, params=None):
+        last_error = None
+        for attempt in range(1, 4):
+            try:
+                return requests.get(url, params=params, timeout=20)
+            except (requests.exceptions.ConnectionError, TimeoutError, OSError) as exc:
+                last_error = exc
+                print(f"PubMed request attempt {attempt}/3 failed: {exc}")
+                if attempt < 3:
+                    time.sleep(2 * attempt)
+        raise RuntimeError(f"PubMed request failed. Last error: {last_error}")
+
+    response = get_with_retry(search_url, params=params)
     response.raise_for_status()
     data = response.json()
     ids = data.get("esearchresult", {}).get("idlist", [])
@@ -550,7 +562,7 @@ def fetch_pubmed_items(term, max_results):
     if NCBI_API_KEY:
         params["api_key"] = NCBI_API_KEY
 
-    response = requests.get(summary_url, params=params, timeout=20)
+    response = get_with_retry(summary_url, params=params)
     response.raise_for_status()
     items_json = response.json().get("result", {})
 

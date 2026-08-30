@@ -1,7 +1,20 @@
+# Environment files — never commit secrets
 .env
-news-agent/node_modules/
-news-agent/.env
-news-agent/processed_urls.json
-news-agent/node_modules/
-news-agent/.env
-news-agent/processed_urls.json
+.env.*
+!.env.example
+*.env
+*.env.*
+core.env
+
+# Runtime / local data
+processed_urls.json
+
+# Node
+node_modules/
+
+# Builds & logs
+.next/
+*.log
+
+# OS
+.DS_Store

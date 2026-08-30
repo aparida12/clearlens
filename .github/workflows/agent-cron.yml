@@ -14,7 +14,7 @@ jobs:
       - name: Trigger ClearLens agent
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X POST https://your-app.vercel.app/api/agent/run \
+            -X POST https://clearlens.ai/api/agent/run \
             -H "Content-Type: application/json" \
             -H "x-agent-secret: ${{ secrets.AGENT_SECRET }}")
           echo "Response code: $response"
@@ -36,5 +36,5 @@ jobs:
     steps:
       - name: Send weekly digest
         run: |
-          curl -X POST https://your-app.vercel.app/api/email/digest \
+          curl -X POST https://clearlens.ai/api/email/digest \
             -H "x-agent-secret: ${{ secrets.AGENT_SECRET }}"
