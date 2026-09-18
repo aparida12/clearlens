@@ -187,34 +187,12 @@ RSS_SOURCES = [
 
 FDA_API_URL = "https://api.fda.gov/drug/event.json"
 
-GROQ_API_KEYS = [
-    key for key in [
-        GROQ_API_KEY,
-        read_env_value("GROQ_API_KEY_2"),
-        read_env_value("GROQ_API_KEY_3"),
-    ] if key
-]
-
-groq_clients = [
-    openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=key)
-    for key in GROQ_API_KEYS
-]
-
-client = groq_clients[0] if groq_clients else None
-
-
-def groq_chat_completion(**kwargs):
-    if not groq_clients:
-        raise RuntimeError("No GROQ_API_KEY configured; AI summarization is disabled.")
-    last_error = None
-    for i, gclient in enumerate(groq_clients):
-        try:
-            return gclient.chat.completions.create(**kwargs)
-        except Exception as e:
-            last_error = e
-            print(f"Groq key #{i+1} failed: {e}. Trying next key if available...")
-            continue
-    raise RuntimeError(f"All Groq API keys failed. Last error: {last_error}")
+client = None
+if GROQ_API_KEY:
+    client = openai.OpenAI(
+        base_url="https://api.groq.com/openai/v1",
+        api_key=GROQ_API_KEY,
+    )
 
 
 def init_db():
@@ -623,7 +601,7 @@ def summarize_item(item):
         f"Link: {item['url']}\n"
     )
 
-    completion = groq_chat_completion(
+    completion = client.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[
             {"role": "user", "content": prompt}
@@ -661,7 +639,7 @@ def summarize_item(item):
             f"Original Item:\nTitle: {item['title']}\nSource: {item['source']}\nDate: {item['date']}\nContent: {item['text']}\nLink: {item['url']}\n"
         )
 
-        research_completion = groq_chat_completion(
+        research_completion = client.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[
                 {"role": "user", "content": research_prompt}
@@ -1196,7 +1174,7 @@ def generate_unbiased_article(item, research_report):
         + verified_block
     )
 
-    completion = groq_chat_completion(
+    completion = client.chat.completions.create(
         model="openai/gpt-oss-120b",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.1,

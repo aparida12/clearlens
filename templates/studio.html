@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClearLens Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#f2ede4;color:#0f0e0c;font-family:'DM Sans',sans-serif;min-height:100vh}
+    .studio-nav{background:#0f0e0c;color:#faf8f4;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+    .studio-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900}
+    .studio-meta{font-size:.75rem;color:#9a9690;letter-spacing:.05em}
+    .logout-link{color:#9a9690;font-size:.75rem;text-decoration:none;letter-spacing:.05em;text-transform:uppercase}
+    .logout-link:hover{color:#c0392b}
+    .studio-wrap{max-width:900px;margin:0 auto;padding:2rem}
+    .studio-card{background:#fff;border:0.5px solid #e0d8cc;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:1rem}
+    .card-source{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:#c0392b;margin-bottom:.4rem}
+    .card-headline{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;line-height:1.25}
+    .card-date{font-size:.72rem;color:#9a9690;white-space:nowrap}
+    .tweet-status{display:inline-block;font-size:.68rem;font-weight:500;padding:.2rem .6rem;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}
+    .status-posted{background:#e8f5ee;color:#1a7a4a}
+    .status-pending{background:#f0ede8;color:#6b6560}
+    .status-failed{background:#fbeae8;color:#c0392b}
+    .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem}
+    .social-card{background:#f2ede4;border:0.5px solid #e0d8cc;border-radius:6px;padding:.9rem 1rem}
+    .social-platform{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#c0392b;margin-bottom:.4rem}
+    .social-text{font-size:.8rem;line-height:1.55;white-space:pre-wrap;margin-bottom:.5rem}
+    .copy-btn{font-size:.68rem;background:#0f0e0c;color:#faf8f4;border:none;padding:.22rem .6rem;border-radius:3px;cursor:pointer}
+    .copy-btn:hover{background:#c0392b}
+    .view-link{font-size:.75rem;color:#c0392b;text-decoration:none}
+    .view-link:hover{text-decoration:underline}
+    .empty{text-align:center;padding:3rem;color:#9a9690}
+    @media(max-width:700px){.social-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav class="studio-nav">
+    <span class="studio-logo">ClearLens Studio</span>
+    <div style="display:flex;align-items:center;gap:1.25rem;">
+      <span class="studio-meta">{{ total_articles }} articles · {{ today }}</span>
+      <a class="logout-link" href="{{ url_for('studio_logout') }}">Log out</a>
+    </div>
+  </nav>
+
+  <div class="studio-wrap">
+    {% if articles %}
+      {% for a in articles %}
+      <div class="studio-card">
+        <div class="card-top">
+          <div>
+            <p class="card-source">{{ a.source }}</p>
+            <h2 class="card-headline">{{ a.headline }}</h2>
+          </div>
+          <span class="card-date">{{ a.date_formatted }}</span>
+        </div>
+
+        {% if a.tweetStatus %}
+          {% if a.tweetStatus.posted %}
+          <span class="tweet-status status-posted">Posted to Twitter</span>
+          {% elif a.tweetStatus.reason == 'auto-post disabled' %}
+          <span class="tweet-status status-pending">Not posted (auto-post off)</span>
+          {% else %}
+          <span class="tweet-status status-failed">Post failed: {{ a.tweetStatus.reason }}</span>
+          {% endif %}
+        {% endif %}
+
+        <p style="font-size:.85rem;color:#5a5751;margin-bottom:.75rem;">{{ a.summary }}</p>
+        <a class="view-link" href="{{ url_for('article_detail', slug=a.slug) }}" target="_blank">View public article ↗</a>
+
+        {% if a.social %}
+        <div class="social-grid">
+          {% if a.social.twitter %}
+          <div class="social-card">
+            <p class="social-platform">Twitter / X</p>
+            <p class="social-text">{{ a.social.twitter }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+          </div>
+          {% endif %}
+          {% if a.social.linkedin %}
+          <div class="social-card">
+            <p class="social-platform">LinkedIn</p>
+            <p class="social-text">{{ a.social.linkedin }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+          </div>
+          {% endif %}
+          {% if a.social.instagram %}
+          <div class="social-card">
+            <p class="social-platform">Instagram</p>
+            <p class="social-text">{{ a.social.instagram }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+          </div>
+          {% endif %}
+          {% if a.social.tiktok %}
+          <div class="social-card">
+            <p class="social-platform">TikTok Script</p>
+            <p class="social-text">{{ a.social.tiktok }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+          </div>
+          {% endif %}
+          {% if a.social.facebook %}
+          <div class="social-card">
+            <p class="social-platform">Facebook</p>
+            <p class="social-text">{{ a.social.facebook }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+          </div>
+          {% endif %}
+          {% if a.social.threads %}
+          <div class="social-card">
+            <p class="social-platform">Threads</p>
+            <p class="social-text">{{ a.social.threads }}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim())">Copy</button>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No articles yet.</div>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClearLens Studio — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#faf8f4;color:#0f0e0c;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .login-box{background:#fff;border:0.5px solid #e0d8cc;border-radius:8px;padding:2.5rem;width:340px;text-align:center}
+    h1{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;margin-bottom:.25rem}
+    p.sub{font-size:.8rem;color:#9a9690;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.75rem}
+    input[type=password]{width:100%;padding:.7rem .9rem;border:0.5px solid #e0d8cc;border-radius:4px;font-size:.95rem;margin-bottom:1rem;background:#faf8f4}
+    button{width:100%;padding:.75rem;background:#0f0e0c;color:#faf8f4;border:none;border-radius:4px;font-size:.85rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+    button:hover{background:#c0392b}
+    .error{color:#c0392b;font-size:.8rem;margin-bottom:1rem}
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>ClearLens</h1>
+    <p class="sub">Studio Access</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+      <input type="password" name="password" placeholder="Password" autofocus required/>
+      <button type="submit">Enter Studio</button>
+    </form>
+  </div>
+</body>
+</html>

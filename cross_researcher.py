@@ -4,6 +4,7 @@ Conducts in-depth research across multiple sources to verify and expand findings
 """
 
 import json
+import html
 import re
 import sqlite3
 import time
@@ -53,6 +54,13 @@ class CrossResearcher:
 
         queries = [q for q in dict.fromkeys(phrases) if q]
         return queries[:max_queries]
+
+    @staticmethod
+    def clean_feed_text(value, max_chars=500):
+        text = html.unescape(str(value or ""))
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = re.sub(r"\s+", " ", text).strip()
+        return text[:max_chars].rstrip() if text else ""
 
     def search_pubmed(self, query, max_results=10):
         """Search PubMed for related studies."""
@@ -105,10 +113,41 @@ class CrossResearcher:
             response = get_with_retry(summary_url, params=summary_params, retries=4, base_delay=2)
             results_json = response.json().get("result", {})
 
+            abstract_params = {
+                "db": "pubmed",
+                "id": ",".join(ids),
+                "rettype": "abstract",
+                "retmode": "xml",
+            }
+            if self.ncbi_api_key:
+                abstract_params["api_key"] = self.ncbi_api_key
+            abstract_response = get_with_retry(
+                f"{self.pubmed_base}/efetch.fcgi",
+                params=abstract_params,
+                retries=4,
+                base_delay=2,
+            )
+            import xml.etree.ElementTree as ET
+            abstract_root = ET.fromstring(abstract_response.content)
+            abstracts = {}
+            for article in abstract_root.findall(".//PubmedArticle"):
+                pmid_node = article.find(".//PMID")
+                if pmid_node is None or not pmid_node.text:
+                    continue
+                parts = []
+                for abstract_node in article.findall(".//Abstract/AbstractText"):
+                    label = abstract_node.attrib.get("Label", "").strip()
+                    text = "".join(abstract_node.itertext()).strip()
+                    if text:
+                        parts.append(f"{label}: {text}" if label else text)
+                if parts:
+                    abstracts[pmid_node.text.strip()] = self.clean_feed_text(" ".join(parts), 1200)
+
             articles = []
             for pmid in ids:
                 record = results_json.get(pmid)
-                if not record:
+                summary = abstracts.get(pmid, "")
+                if not record or not summary:
                     continue
                 articles.append(
                     {
@@ -118,7 +157,7 @@ class CrossResearcher:
                         "authors": [a.get("name", "") for a in record.get("authors", [])[:3]],
                         "date": record.get("pubdate", ""),
                         "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
-                        "summary": record.get("summary", ""),
+                        "summary": summary,
                     }
                 )
 
@@ -205,10 +244,10 @@ class CrossResearcher:
                     articles.append(
                         {
                             "source": feed_name,
-                            "title": entry.get("title", ""),
+                            "title": self.clean_feed_text(entry.get("title", ""), 300),
                             "date": entry.get("published", ""),
                             "url": link,
-                            "summary": entry.get("summary", "")[:300],
+                            "summary": self.clean_feed_text(entry.get("summary", ""), 500),
                         }
                     )
 

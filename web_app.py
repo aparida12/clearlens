@@ -48,43 +48,42 @@ def format_date(iso_string):
         dt = datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
         return dt.strftime("%B %d, %Y")
     except Exception:
-        return iso_string
+        return iso_string or ""
 
 
 def load_generated_articles(limit=50):
     articles = []
-    if not REPORTS_DIR.exists():
-        return articles
+    with get_conn() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, title, source, article_date, url, content, created_at
+            FROM uploaded_articles
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (limit,)
+        ).fetchall()
 
-    json_files = sorted(
-        [f for f in REPORTS_DIR.glob("*.json")],
-        key=lambda f: f.name,
-        reverse=True
-    )
+    for row in rows:
+        content = row["content"] or ""
+        lines = [l.strip() for l in content.split("\n") if l.strip()]
+        summary = lines[2] if len(lines) > 2 else (lines[0] if lines else "")
 
-    for filepath in json_files[:limit]:
-        try:
-            data = json.loads(filepath.read_text(encoding="utf-8"))
-            article = data.get("article", {})
-            if not article.get("headline") or not article.get("body"):
-                continue
-
-            articles.append({
-                "slug": filepath.stem,
-                "headline": article.get("headline", ""),
-                "summary": article.get("summary", ""),
-                "body": article.get("body", ""),
-                "takeaway": article.get("takeaway", ""),
-                "source": data.get("source", "ClearLens"),
-                "source_url": data.get("sourceUrl", ""),
-                "generated_at": data.get("generatedAt", ""),
-                "date_formatted": format_date(data.get("generatedAt", "")),
-                "social": data.get("social", {}),
-                "consensus": data.get("consensus", {}),
-                "research_sources": data.get("researchSources", []),
-            })
-        except Exception:
-            continue
+        articles.append({
+            "slug": str(row["id"]),
+            "headline": row["title"] or "",
+            "summary": summary,
+            "body": content,
+            "takeaway": "",
+            "source": row["source"] or "ClearLens",
+            "source_url": row["url"] or "",
+            "image_url": "",
+            "generated_at": row["created_at"] or "",
+            "date_formatted": format_date(row["created_at"] or ""),
+            "social": {},
+            "consensus": {},
+            "research_sources": [],
+        })
 
     return articles
 
@@ -93,7 +92,7 @@ def load_generated_articles(limit=50):
 def public_home():
     articles = load_generated_articles(limit=50)
     featured = articles[0] if articles else None
-    recent = articles[1:13] if len(articles) > 1 else []
+    recent = articles[1:21] if len(articles) > 1 else []
     return render_template(
         "public_home.html",
         featured_article=featured,
@@ -105,15 +104,19 @@ def public_home():
 
 @app.route("/article/<slug>", methods=["GET"])
 def article_detail(slug):
-    filepath = REPORTS_DIR / f"{slug}.json"
-    if not filepath.exists():
-        abort(404)
-    try:
-        data = json.loads(filepath.read_text(encoding="utf-8"))
-    except Exception:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT id, title, source, url, content, created_at FROM uploaded_articles WHERE id = ?",
+            (slug,)
+        ).fetchone()
+
+    if row is None:
         abort(404)
 
-    article_data = data.get("article", {})
+    content = row["content"] or ""
+    lines = [l.strip() for l in content.split("\n") if l.strip()]
+    summary = lines[2] if len(lines) > 2 else (lines[0] if lines else "")
+
     all_articles = load_generated_articles(limit=20)
     related = [a for a in all_articles if a["slug"] != slug][:6]
 
@@ -121,16 +124,17 @@ def article_detail(slug):
         "article.html",
         article={
             "slug": slug,
-            "headline": article_data.get("headline", ""),
-            "summary": article_data.get("summary", ""),
-            "body": article_data.get("body", ""),
-            "takeaway": article_data.get("takeaway", ""),
-            "source": data.get("source", "ClearLens"),
-            "source_url": data.get("sourceUrl", ""),
-            "date_formatted": format_date(data.get("generatedAt", "")),
-            "social": data.get("social", {}),
-            "consensus": data.get("consensus", {}),
-            "research_sources": data.get("researchSources", []),
+            "headline": row["title"] or "",
+            "summary": summary,
+            "body": content,
+            "takeaway": "",
+            "source": row["source"] or "ClearLens",
+            "source_url": row["url"] or "",
+            "image_url": "",
+            "date_formatted": format_date(row["created_at"] or ""),
+            "social": {},
+            "consensus": {},
+            "research_sources": [],
         },
         related_articles=related,
     )

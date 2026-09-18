@@ -23,25 +23,32 @@
     .nav-back{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;display:flex;align-items:center;gap:.4rem}
     .nav-back:hover{color:var(--accent)}
     .nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--ink);text-decoration:none}
-    .article-wrap{max-width:760px;margin:0 auto;padding:3rem 2.5rem}
+    .article-wrap{max-width:1180px;margin:0 auto;padding:4rem 3rem 5rem}
+    .article-header{max-width:920px;margin:0 auto 2.5rem;text-align:center}
     .article-kicker{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
-    .article-headline{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:900;line-height:1.1;margin-bottom:1.25rem}
-    .article-byline{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--ink-3);margin-bottom:2rem;flex-wrap:wrap}
+    .article-headline{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,5vw,4.8rem);font-weight:900;line-height:1.04;margin-bottom:1.25rem;letter-spacing:-.02em}
+    .article-byline{display:flex;align-items:center;justify-content:center;gap:.5rem;font-size:.78rem;color:var(--ink-3);margin-bottom:2rem;flex-wrap:wrap}
     .byline-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-3)}
     .byline-link{color:var(--accent);text-decoration:none}
     .byline-link:hover{text-decoration:underline}
-    .article-summary{font-size:1.15rem;line-height:1.8;color:var(--ink-2);font-weight:300;border-left:3px solid var(--accent);padding-left:1.25rem;margin-bottom:2.5rem}
+    .article-summary{max-width:760px;margin:0 auto 2.5rem;font-size:1.2rem;line-height:1.75;color:var(--ink-2);font-weight:300;border-left:3px solid var(--accent);padding-left:1.25rem;text-align:left}
+    .article-meta{display:flex;justify-content:center;gap:.55rem;flex-wrap:wrap;margin:-.75rem 0 2rem}
+    .meta-pill{font-family:'DM Mono',monospace;font-size:.63rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--paper-3);border-radius:999px;padding:.35rem .7rem}
+    .hero-figure{margin:0 auto 3rem;max-width:1080px}
+    .hero-figure img{display:block;width:100%;max-height:580px;object-fit:cover}
+    .hero-caption{font-size:.72rem;color:var(--ink-3);margin-top:.55rem;text-align:right}
     .article-divider{border:none;border-top:0.5px solid var(--paper-3);margin:2rem 0}
-    .article-body p{font-size:1rem;line-height:1.85;color:var(--ink);margin-bottom:1.5rem}
+    .article-body{max-width:760px;margin:0 auto}
+    .article-body p{font-size:1.08rem;line-height:1.9;color:var(--ink);margin-bottom:1.6rem}
     .takeaway-box{background:var(--paper-2);border-left:4px solid var(--accent);padding:1.25rem 1.5rem;margin:2.5rem 0;border-radius:2px}
     .takeaway-box .t-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
     .takeaway-box p{font-size:.95rem;color:var(--ink);font-weight:500;margin:0}
-    .consensus-section{background:var(--paper-2);border:0.5px solid var(--paper-3);border-radius:6px;padding:1.5rem;margin:2.5rem 0}
+    .consensus-section{max-width:920px;margin:0 auto 3rem;padding:1.25rem 0 1.5rem;border-top:2px solid var(--ink);border-bottom:1px solid var(--paper-3)}
     .c-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
     .c-title{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
     .c-count{font-size:.72rem;color:var(--ink-3)}
     .c-claim{font-size:.9rem;color:var(--ink-2);font-style:italic;margin-bottom:1.25rem;line-height:1.6}
-    .c-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin-bottom:.75rem}
+    .c-bar{display:flex;height:14px;border-radius:3px;overflow:hidden;background:var(--paper-3);margin-bottom:.75rem}
     .seg{border-radius:3px}
     .seg-agree{background:var(--agree)}
     .seg-dispute{background:var(--dispute)}
@@ -50,6 +57,8 @@
     .c-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
     .c-legend-item{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--ink-2)}
     .c-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .c-details{border-top:1px solid var(--paper-3);margin-top:1rem;padding-top:.8rem}
+    .c-details summary{cursor:pointer;font-size:.78rem;color:var(--accent);font-weight:500}
     .c-sources{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem}
     .c-source-row{display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--paper);border-radius:4px;border:0.5px solid var(--paper-3)}
     .c-outlet{font-size:.8rem;font-weight:500;flex:1;color:var(--ink)}
@@ -63,6 +72,10 @@
     .sources-section h4{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1rem}
     .source-link{display:block;font-size:.85rem;color:var(--accent);margin-bottom:.4rem;word-break:break-all;text-decoration:none}
     .source-link:hover{text-decoration:underline}
+    .sources-list{list-style:none;padding:0;margin:0;display:grid;gap:.7rem}
+    .sources-list li{padding-left:1.1rem;position:relative}
+    .sources-list li::before{content:' ';width:5px;height:5px;border-radius:50%;background:var(--accent);position:absolute;left:0;top:.65rem}
+    .source-outlet{display:block;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:.2rem}
     .social-section{margin-top:2.5rem;padding-top:1.5rem;border-top:0.5px solid var(--paper-3)}
     .social-section h3{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1.25rem}
     .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
@@ -84,7 +97,10 @@
     .site-footer{border-top:2px solid var(--ink);padding:2rem 2.5rem;text-align:center}
     .site-footer p{font-size:.78rem;color:var(--ink-3);letter-spacing:.05em}
     @media(max-width:700px){
-      .article-wrap{padding:2rem 1.25rem}
+      .article-wrap{padding:2.5rem 1.25rem 3rem}
+      .article-headline{font-size:clamp(2.1rem,11vw,3.2rem)}
+      .article-summary{font-size:1.05rem}
+      .hero-figure{margin-bottom:2rem}
       .social-grid{grid-template-columns:1fr}
       .related-grid{grid-template-columns:1fr}
       .site-nav{padding:.75rem 1.25rem}
@@ -98,7 +114,8 @@
     <span style="width:80px"></span>
   </nav>
 
-  <div class="article-wrap">
+  <main class="article-wrap">
+    <header class="article-header">
     <p class="article-kicker">{{ article.source }}</p>
     <h1 class="article-headline">{{ article.headline }}</h1>
     <div class="article-byline">
@@ -112,30 +129,46 @@
       <a class="byline-link" href="{{ article.source_url }}" target="_blank" rel="noopener">Original source ↗</a>
       {% endif %}
     </div>
+    <div class="article-meta">
+      <span class="meta-pill">{{ ((article.body|wordcount / 200)|round(0, 'ceil'))|int }} min read</span>
+      {% if article.research_sources %}<span class="meta-pill">{{ article.research_sources|length }} sources</span>{% endif %}
+      <span class="meta-pill">Verified across outlets</span>
+    </div>
+    </header>
 
     <p class="article-summary">{{ article.summary }}</p>
 
     {% if article.consensus and article.consensus.stats %}
     {% set s = article.consensus.stats %}
+    {% set scored_total = (s.supports|int) + (s.neutral|int) + (s.disputes|int) + (s.mixed|int) %}
+    {% set consensus_total = s.total|int if s.total|int > 0 else scored_total %}
     <div class="consensus-section">
       <div class="c-header">
         <span class="c-title">Source consensus</span>
-        <span class="c-count">{{ s.total }} outlets analyzed</span>
+        <span class="c-count">{{ consensus_total }} outlets analyzed</span>
       </div>
       {% if article.consensus.centralClaim %}<p class="c-claim">"{{ article.consensus.centralClaim }}"</p>{% endif %}
-      <div class="c-bar">
-        {% if s.supports > 0 %}<div class="seg seg-agree" style="flex:{{ s.supports }}"></div>{% endif %}
-        {% if s.disputes > 0 %}<div class="seg seg-dispute" style="flex:{{ s.disputes }}"></div>{% endif %}
-        {% if s.mixed > 0 %}<div class="seg seg-mixed" style="flex:{{ s.mixed }}"></div>{% endif %}
-        {% if s.neutral > 0 %}<div class="seg seg-neutral" style="flex:{{ s.neutral }}"></div>{% endif %}
+      {% if consensus_total >= 3 and scored_total > 0 %}
+      {% set agree_pct = ((s.supports|int / scored_total) * 100)|round(0)|int %}
+      {% set neutral_pct = ((s.neutral|int / scored_total) * 100)|round(0)|int %}
+      {% set disagree_pct = (((s.disputes|int + s.mixed|int) / scored_total) * 100)|round(0)|int %}
+      <p class="c-claim">{{ agree_pct }}% agree · {{ neutral_pct }}% neutral · {{ disagree_pct }}% conflicting</p>
+      <div class="c-bar" role="img" aria-label="Source consensus: {{ agree_pct }} percent agree, {{ neutral_pct }} percent neutral, {{ disagree_pct }} percent conflicting">
+        {% if agree_pct > 0 %}<div class="seg seg-agree" style="flex:{{ agree_pct }}"></div>{% endif %}
+        {% if neutral_pct > 0 %}<div class="seg seg-neutral" style="flex:{{ neutral_pct }}"></div>{% endif %}
+        {% if disagree_pct > 0 %}<div class="seg seg-dispute" style="flex:{{ disagree_pct }}"></div>{% endif %}
       </div>
       <div class="c-legend">
-        {% if s.supports > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--agree)"></span>{{ s.supports }} support the claim</span>{% endif %}
-        {% if s.disputes > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--dispute)"></span>{{ s.disputes }} dispute it</span>{% endif %}
-        {% if s.mixed > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--mixed)"></span>{{ s.mixed }} mixed</span>{% endif %}
-        {% if s.neutral > 0 %}<span class="c-legend-item"><span class="c-dot" style="background:var(--neutral-c)"></span>{{ s.neutral }} neutral</span>{% endif %}
+        <span class="c-legend-item"><span class="c-dot" style="background:var(--agree)"></span>{{ agree_pct }}% agree</span>
+        <span class="c-legend-item"><span class="c-dot" style="background:var(--neutral-c)"></span>{{ neutral_pct }}% neutral</span>
+        <span class="c-legend-item"><span class="c-dot" style="background:var(--dispute)"></span>{{ disagree_pct }}% conflicting</span>
       </div>
+      {% else %}
+      <p class="c-claim">Consensus is unavailable until at least three sources have been scored.</p>
+      {% endif %}
       {% if article.consensus.sources %}
+      <details class="c-details">
+        <summary>View source assessments</summary>
       <div class="c-sources">
         {% for src in article.consensus.sources %}
         <div class="c-source-row">
@@ -145,11 +178,19 @@
         </div>
         {% endfor %}
       </div>
+      </details>
       {% endif %}
     </div>
     {% endif %}
 
     <hr class="article-divider"/>
+
+    {% if article.image_url %}
+    <figure class="hero-figure">
+      <img src="{{ article.image_url }}" alt="{{ article.headline }}" loading="eager" />
+      <figcaption class="hero-caption">Image provided with the original reporting.</figcaption>
+    </figure>
+    {% endif %}
 
     <div class="article-body">
       {% for paragraph in article.body.split('\n\n') %}
@@ -167,11 +208,13 @@
     {% if article.research_sources %}
     <div class="sources-section">
       <h4>Sources</h4>
+      <ol class="sources-list">
       {% for source in article.research_sources %}
         {% if source.url %}
-        <a class="source-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title or source.url }}</a>
+        <li><a class="source-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title or source.url }}</a>{% if source.outlet %}<span class="source-outlet">{{ source.outlet }}{% if source.publishedAt %} · {{ source.publishedAt }}{% endif %}</span>{% endif %}</li>
         {% endif %}
       {% endfor %}
+      </ol>
     </div>
     {% endif %}
 
@@ -224,7 +267,7 @@
       </div>
     </div>
     {% endif %}
-  </div>
+  </main>
 
   {% if related_articles %}
   <div class="related-section">
