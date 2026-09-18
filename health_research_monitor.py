@@ -5,6 +5,11 @@ import os
 import re
 import sqlite3
 import time
+
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
@@ -48,6 +53,48 @@ GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
 
 DB_PATH = "processed_items.db"
 WEB_DB_PATH = BASE_DIR / DB_PATH
+
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+IS_POSTGRES = bool(DATABASE_URL)
+
+
+def get_conn():
+    """Returns a connection. Postgres on Heroku (DATABASE_URL set), SQLite locally.
+    Rows are tuple-indexable in both cases to match existing row[0]-style code."""
+    if IS_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = True
+        return conn
+    return sqlite3.connect(DB_PATH)
+
+
+def q(sql):
+    """Translate SQLite-style ? placeholders to Postgres %s when needed."""
+    if IS_POSTGRES:
+        return sql.replace("?", "%s")
+    return sql
+
+
+def get_columns(conn, table_name):
+    """Cross-database column lookup, replaces PRAGMA table_info."""
+    if IS_POSTGRES:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = %s",
+            (table_name,)
+        )
+        return {row[0] for row in cur.fetchall()}
+    else:
+        return {row[1] for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()}
+
+
+def run(conn, sql, params=()):
+    """Execute a statement, returning a cursor, on either backend."""
+    if IS_POSTGRES:
+        cur = conn.cursor()
+        cur.execute(q(sql), params)
+        return cur
+    return conn.execute(q(sql), params)
 AUTO_PUBLISH_TO_WEB = os.getenv("AUTO_PUBLISH_TO_WEB", "true").strip().lower() in {"1", "true", "yes", "on"}
 
 PUBMED_TERM = os.getenv(
@@ -218,11 +265,10 @@ def groq_chat_completion(**kwargs):
 
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS processed (item_id TEXT PRIMARY KEY, title TEXT, source TEXT, date TEXT)"
-    )
-    conn.execute(
+    conn = get_conn()
+    run(conn, "CREATE TABLE IF NOT EXISTS processed (item_id TEXT PRIMARY KEY, title TEXT, source TEXT, date TEXT)")
+    run(
+        conn,
         """
         CREATE TABLE IF NOT EXISTS delivery_log (
             signature TEXT PRIMARY KEY,
@@ -232,21 +278,30 @@ def init_db():
         )
         """
     )
-    conn.commit()
+    if not IS_POSTGRES:
+        conn.commit()
     return conn
 
 
 def is_processed(conn, item_id):
-    cursor = conn.execute("SELECT 1 FROM processed WHERE item_id = ?", (item_id,))
+    cursor = run(conn, "SELECT 1 FROM processed WHERE item_id = ?", (item_id,))
     return cursor.fetchone() is not None
 
 
 def mark_processed(conn, item_id, title, source, date):
-    conn.execute(
-        "INSERT OR IGNORE INTO processed (item_id, title, source, date) VALUES (?, ?, ?, ?)",
-        (item_id, title, source, date),
-    )
-    conn.commit()
+    if IS_POSTGRES:
+        run(
+            conn,
+            "INSERT INTO processed (item_id, title, source, date) VALUES (?, ?, ?, ?) ON CONFLICT (item_id) DO NOTHING",
+            (item_id, title, source, date),
+        )
+    else:
+        run(
+            conn,
+            "INSERT OR IGNORE INTO processed (item_id, title, source, date) VALUES (?, ?, ?, ?)",
+            (item_id, title, source, date),
+        )
+        conn.commit()
 
 
 def delivery_signature(item):
@@ -258,7 +313,8 @@ def delivery_signature(item):
 
 def was_recently_delivered(conn, item, within_hours=36):
     signature = delivery_signature(item)
-    row = conn.execute(
+    row = run(
+        conn,
         "SELECT delivered_at FROM delivery_log WHERE signature = ?",
         (signature,),
     ).fetchone()
@@ -276,7 +332,8 @@ def was_recently_delivered(conn, item, within_hours=36):
 def mark_delivered(conn, item):
     signature = delivery_signature(item)
     delivered_at = datetime.now().isoformat(timespec="seconds")
-    conn.execute(
+    run(
+        conn,
         """
         INSERT INTO delivery_log (signature, title, source, delivered_at)
         VALUES (?, ?, ?, ?)
@@ -289,7 +346,8 @@ def mark_delivered(conn, item):
             delivered_at,
         ),
     )
-    conn.commit()
+    if not IS_POSTGRES:
+        conn.commit()
 
 
 # --- Free, high-signal filter ---
@@ -451,7 +509,7 @@ def is_duplicate(conn, item):
     """
     Simple duplicate check: compare title against last 50 processed items
     """
-    cursor = conn.execute("SELECT title FROM processed ORDER BY date DESC LIMIT 50")
+    cursor = run(conn, "SELECT title FROM processed ORDER BY date DESC LIMIT 50")
     recent_titles = [row[0].lower() for row in cursor.fetchall()]
     title = item.get("title", "").lower()
 
@@ -1584,31 +1642,51 @@ def send_slack_digest(subject, digest_entries, pdf_attachments=None):
 
 
 def init_uploaded_articles_table(conn):
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS uploaded_articles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            source TEXT,
-            article_date TEXT,
-            url TEXT,
-            content TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
-            attachment_name TEXT,
-            created_at TEXT NOT NULL
+    if IS_POSTGRES:
+        run(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS uploaded_articles (
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                source TEXT,
+                article_date TEXT,
+                url TEXT,
+                content TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                attachment_name TEXT,
+                created_at TEXT NOT NULL
+            )
+            """
         )
-        """
-    )
+    else:
+        run(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS uploaded_articles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                source TEXT,
+                article_date TEXT,
+                url TEXT,
+                content TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                attachment_name TEXT,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
 
     # Migrate older tables that do not yet include status.
-    columns = {row[1] for row in conn.execute("PRAGMA table_info(uploaded_articles)").fetchall()}
+    columns = get_columns(conn, "uploaded_articles")
     for column in ("research_data", "research_sources", "consensus_data"):
         if column not in columns:
-            conn.execute(f"ALTER TABLE uploaded_articles ADD COLUMN {column} TEXT")
+            run(conn, f"ALTER TABLE uploaded_articles ADD COLUMN {column} TEXT")
     if "status" not in columns:
-        conn.execute("ALTER TABLE uploaded_articles ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'")
-    conn.execute("UPDATE uploaded_articles SET status = 'pending' WHERE status IS NULL OR TRIM(status) = ''")
-    conn.commit()
+        run(conn, "ALTER TABLE uploaded_articles ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'")
+    run(conn, "UPDATE uploaded_articles SET status = 'pending' WHERE status IS NULL OR TRIM(status) = ''")
+    if not IS_POSTGRES:
+        conn.commit()
 
 
 def publish_article_to_web(item, article_text, attachment_name="", research_report=None):
@@ -1626,11 +1704,12 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
     if not title or not content:
         return False
 
-    with sqlite3.connect(WEB_DB_PATH) as web_conn:
+    with get_conn() as web_conn:
         init_uploaded_articles_table(web_conn)
 
         # Avoid duplicate public posts for the same title/date/source combination.
-        existing = web_conn.execute(
+        existing = run(
+            web_conn,
             """
             SELECT id, content FROM uploaded_articles
             WHERE title = ? AND source = ? AND article_date = ?
@@ -1642,7 +1721,8 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
         if existing:
             existing_content = (existing[1] or "").strip()
             if len(content.split()) > len(existing_content.split()):
-                web_conn.execute(
+                run(
+                    web_conn,
                     """
                     UPDATE uploaded_articles
                     SET content = ?, url = ?, attachment_name = ?, research_data = ?, research_sources = ?, consensus_data = ?, created_at = ?
@@ -1650,11 +1730,13 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
                     """,
                     (content, url, attachment_name, research_data, research_sources, consensus_data, created_at, existing[0]),
                 )
-                web_conn.commit()
+                if not IS_POSTGRES:
+                    web_conn.commit()
                 return True
             return False
 
-        web_conn.execute(
+        run(
+            web_conn,
             """
             INSERT INTO uploaded_articles
             (title, source, article_date, url, content, status, attachment_name, research_data, research_sources, consensus_data, created_at)
@@ -1662,7 +1744,8 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
             """,
             (title, source, article_date, url, content, "pending", attachment_name, research_data, research_sources, consensus_data, created_at),
         )
-        web_conn.commit()
+        if not IS_POSTGRES:
+            web_conn.commit()
 
     return True
 
