@@ -105,33 +105,7 @@
         {% endif %}
       </section>
 
-      <section class="submit-section reveal delayed-3">
-        <article>
-          <h3>Submit to the Desk</h3>
-          <form method="post" action="{{ url_for('upload_article') }}" class="upload-form" enctype="multipart/form-data">
-            <label>Headline</label>
-            <input type="text" name="title" placeholder="Optional if uploading a file" />
-
-            <label>Source</label>
-            <input type="text" name="source" placeholder="WHO, NIH, journal, etc." />
-
-            <label>Article Date</label>
-            <input type="date" name="article_date" />
-
-            <label>External URL</label>
-            <input type="url" name="url" placeholder="https://..." />
-
-            <label>Upload PDF or TXT</label>
-            <input type="file" name="article_file" accept=".pdf,.txt" />
-
-            <label>Story Text</label>
-            <textarea name="content" rows="8" placeholder="Paste complete article content here. Uploaded files are automatically extracted."></textarea>
-
-            <p class="form-note">At least one input is required: file upload or story text.</p>
-            <button type="submit">Publish Entry</button>
-          </form>
-        </article>
-      </section>
+      
     </main>
 
     <style>
