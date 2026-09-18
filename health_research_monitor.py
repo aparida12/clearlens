@@ -1668,14 +1668,14 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
 
 
 def run_monitor():
-    valid_modes = {"email", "slack", "both", "auto"}
+    valid_modes = {"email", "slack", "both", "auto", "none"}
     if DELIVERY_MODE not in valid_modes:
         raise RuntimeError(
             f"Invalid DELIVERY_MODE '{DELIVERY_MODE}'. Use one of: {', '.join(sorted(valid_modes))}."
         )
 
-    requires_email = DELIVERY_MODE in {"email", "both", "auto"}
-    requires_slack = DELIVERY_MODE in {"slack", "both"}
+    requires_email = DELIVERY_MODE in {"email", "both", "auto"} and DELIVERY_MODE != "none"
+    requires_slack = DELIVERY_MODE in {"slack", "both"} and DELIVERY_MODE != "none"
 
     if requires_email and not all([GMAIL_SENDER, GMAIL_RECIPIENT, GMAIL_APP_PASSWORD]):
         raise RuntimeError("Email delivery selected but GMAIL_SENDER, GMAIL_RECIPIENT, and GMAIL_APP_PASSWORD are not fully set.")
@@ -1894,7 +1894,7 @@ def run_monitor():
     delivery_success = False
     delivery_errors = []
 
-    if DELIVERY_MODE in {"email", "both", "auto"}:
+    if DELIVERY_MODE in {"email", "both", "auto"} and DELIVERY_MODE != "none":
         try:
             send_email(subject, body, attachments=pdf_attachments)
             print(
@@ -1906,7 +1906,7 @@ def run_monitor():
             print(f"Email delivery failed: {exc}")
 
     slack_configured = bool(SLACK_WEBHOOK_URL or (SLACK_BOT_TOKEN and SLACK_CHANNEL_ID))
-    if DELIVERY_MODE in {"slack", "both"} or (DELIVERY_MODE == "auto" and slack_configured):
+    if (DELIVERY_MODE in {"slack", "both"} or (DELIVERY_MODE == "auto" and slack_configured)) and DELIVERY_MODE != "none":
         try:
             send_slack_digest(subject, digest_entries, pdf_attachments=pdf_attachments)
             print(f"Sent digest to Slack with {len(digest_entries)} articles.")
