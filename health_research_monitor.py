@@ -1998,7 +1998,9 @@ def run_monitor():
             delivery_errors.append(f"slack: {exc}")
             print(f"Slack delivery failed: {exc}")
 
-    if delivery_success:
+    publish_regardless = DELIVERY_MODE == "none"
+
+    if delivery_success or publish_regardless:
         for entry in digest_entries:
             item = entry["item"]
 
@@ -2014,6 +2016,9 @@ def run_monitor():
 
             mark_delivered(conn, item)
             mark_processed(conn, item["id"], item["title"], item["source"], item["date"])
+
+        if not delivery_success:
+            print(f"DELIVERY_MODE=none: published {len(digest_entries)} article(s) to the website without sending email/Slack.")
     else:
         print("Digest delivery failed on all enabled channels.")
         if delivery_errors:
