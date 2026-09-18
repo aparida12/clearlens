@@ -1151,6 +1151,13 @@ def validate_publication_template(article_text):
     return True
 
 
+def has_excessive_repetition(text, threshold=3):
+    sentences = [s.strip() for s in text.split(".") if s.strip()]
+    from collections import Counter
+    counts = Counter(sentences)
+    return any(count > threshold for count in counts.values())
+
+
 def generate_unbiased_article(item, research_report):
     verified_sources = collect_verified_sources(research_report, max_links=MAX_VERIFIED_SOURCES)
     verified_block = "\n".join(verified_sources) if verified_sources else "- No verified sources available for this item."
@@ -1196,15 +1203,26 @@ def generate_unbiased_article(item, research_report):
         + verified_block
     )
 
-    completion = groq_chat_completion(
-        model="openai/gpt-oss-120b",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,
-        max_tokens=3500,
-        reasoning_effort="low",
-    )
+    article_body = None
+    for attempt in range(2):
+        completion = groq_chat_completion(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1,
+            max_tokens=1800,
+            reasoning_effort="low",
+        )
+        candidate = completion.choices[0].message.content.strip() or fallback_article
+        if not has_excessive_repetition(candidate):
+            article_body = candidate
+            break
+        print(f"Article generation attempt {attempt + 1} showed excessive repetition. Retrying..." if attempt == 0 else "Second attempt also repetitive; using deterministic fallback.")
+    else:
+        article_body = fallback_article
 
-    article_body = completion.choices[0].message.content.strip() or fallback_article
+    if has_excessive_repetition(article_body):
+        article_body = fallback_article
+
     article_body = enforce_unbiased_tone(article_body)
 
     # Safety guard: if model omitted source section, append verified sources explicitly.
