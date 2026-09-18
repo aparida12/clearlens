@@ -7,11 +7,20 @@ from pathlib import Path
 from flask import Flask, abort, jsonify, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
+try:
+    import psycopg2
+    import psycopg2.extras
+except ImportError:
+    psycopg2 = None
+
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "processed_items.db"
 UPLOADS_DIR = BASE_DIR / "uploads"
 REPORTS_DIR = BASE_DIR / "generated_reports"
 ALLOWED_UPLOAD_EXTENSIONS = {".pdf", ".txt"}
+
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+IS_POSTGRES = bool(DATABASE_URL)
 
 app = Flask(__name__)
 app.config['ENV'] = os.getenv('FLASK_ENV', 'development')
@@ -20,27 +29,71 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 
 def get_conn():
+    if IS_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn.autocommit = True
+        return conn
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def q(sql):
+    """Translate SQLite-style ? placeholders to Postgres %s when needed."""
+    if IS_POSTGRES:
+        return sql.replace("?", "%s")
+    return sql
+
+
+def get_columns(conn, table_name):
+    """Cross-database column lookup, replaces PRAGMA table_info."""
+    if IS_POSTGRES:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = %s",
+            (table_name,)
+        )
+        return {row["column_name"] for row in cur.fetchall()}
+    else:
+        return {row[1] for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()}
+
+
+def run(conn, sql, params=()):
+    """Execute a statement, handling the cursor difference between sqlite3 and psycopg2."""
+    if IS_POSTGRES:
+        cur = conn.cursor()
+        cur.execute(q(sql), params)
+        return cur
+    return conn.execute(q(sql), params)
 
 
 def init_web_tables():
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     with get_conn() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS uploaded_articles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL, source TEXT, article_date TEXT,
-                url TEXT, content TEXT NOT NULL, attachment_name TEXT, created_at TEXT NOT NULL
-            )
-        """)
-        try:
-            conn.execute("ALTER TABLE uploaded_articles ADD COLUMN attachment_name TEXT")
-        except sqlite3.OperationalError:
-            pass
-        conn.commit()
+        if IS_POSTGRES:
+            run(conn, """
+                CREATE TABLE IF NOT EXISTS uploaded_articles (
+                    id SERIAL PRIMARY KEY,
+                    title TEXT NOT NULL, source TEXT, article_date TEXT,
+                    url TEXT, content TEXT NOT NULL, attachment_name TEXT, created_at TEXT NOT NULL
+                )
+            """)
+        else:
+            run(conn, """
+                CREATE TABLE IF NOT EXISTS uploaded_articles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL, source TEXT, article_date TEXT,
+                    url TEXT, content TEXT NOT NULL, attachment_name TEXT, created_at TEXT NOT NULL
+                )
+            """)
+
+        columns = get_columns(conn, "uploaded_articles")
+        if "attachment_name" not in columns:
+            run(conn, "ALTER TABLE uploaded_articles ADD COLUMN attachment_name TEXT")
+
+        if not IS_POSTGRES:
+            conn.commit()
 
 
 def format_date(iso_string):
@@ -54,7 +107,8 @@ def format_date(iso_string):
 def load_generated_articles(limit=50):
     articles = []
     with get_conn() as conn:
-        rows = conn.execute(
+        cur = run(
+            conn,
             """
             SELECT id, title, source, article_date, url, content, created_at
             FROM uploaded_articles
@@ -62,7 +116,8 @@ def load_generated_articles(limit=50):
             LIMIT ?
             """,
             (limit,)
-        ).fetchall()
+        )
+        rows = cur.fetchall()
 
     for row in rows:
         content = row["content"] or ""
@@ -105,10 +160,12 @@ def public_home():
 @app.route("/article/<slug>", methods=["GET"])
 def article_detail(slug):
     with get_conn() as conn:
-        row = conn.execute(
+        cur = run(
+            conn,
             "SELECT id, title, source, url, content, created_at FROM uploaded_articles WHERE id = ?",
             (slug,)
-        ).fetchone()
+        )
+        row = cur.fetchone()
 
     if row is None:
         abort(404)
