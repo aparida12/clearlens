@@ -1210,9 +1210,13 @@ def validate_publication_template(article_text):
 
 
 def has_excessive_repetition(text, threshold=3):
-    sentences = [s.strip() for s in text.split(".") if s.strip()]
     from collections import Counter
-    counts = Counter(sentences)
+    # Normalize whitespace and case so near-identical repeated sentences
+    # (differing only by stray spaces/newlines/capitalization) are still caught.
+    raw_sentences = [s.strip() for s in (text or "").split(".") if s.strip()]
+    normalized_sentences = [re.sub(r"\s+", " ", s).strip().lower() for s in raw_sentences]
+    normalized_sentences = [s for s in normalized_sentences if len(s) > 15]  # ignore trivial fragments
+    counts = Counter(normalized_sentences)
     return any(count > threshold for count in counts.values())
 
 
@@ -1293,7 +1297,16 @@ def generate_unbiased_article(item, research_report):
     if not validate_publication_template(formatted):
         # Deterministic fallback: rebuild from enforced template if output drifts.
         repaired = enforce_publication_template(ensure_minimum_article_length(final_article, item, research_report, min_words=950), item, research_report)
-        return repaired
+        formatted = repaired
+
+    # Final defensive check: no article should ever publish with excessive
+    # sentence repetition, regardless of which code path produced it.
+    if has_excessive_repetition(formatted):
+        print(f"WARNING: final article for '{item.get('title', 'Untitled')}' still showed excessive repetition after all fallbacks. Rebuilding from deterministic template.")
+        clean_fallback = build_public_article_fallback(item, research_report, collect_verified_sources(research_report, max_links=MAX_VERIFIED_SOURCES))
+        clean_fallback = ensure_minimum_article_length(clean_fallback, item, research_report, min_words=900)
+        formatted = enforce_publication_template(clean_fallback, item, research_report)
+
     return formatted
 
 
