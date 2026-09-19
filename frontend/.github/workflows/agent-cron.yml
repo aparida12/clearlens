@@ -1,0 +1,15 @@
+name: Agent Cron
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  autopublish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-publish held articles
+        run: |
+          curl -fsS -X POST https://clearlens.ai/api/agent/autopublish \
+            -H "x-agent-secret: ${{ secrets.AGENT_SECRET }}"
