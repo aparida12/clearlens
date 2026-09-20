@@ -8,7 +8,7 @@ import { getPublishedArticles, getRecentHeadlines, saveAgentArticleToSupabase } 
 import { ensureStoreFiles, readQueue, readStatus, writeQueue, writeStatus } from "@/lib/articleStore";
 
 const MAX_SELECTIONS = 5;
-const DAILY_CAP = 12;
+const DAILY_CAP = 48;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const POSITIVE_SENTIMENT_TERMS = [
@@ -730,7 +730,7 @@ export async function run({ baseUrl, test = false } = {}) {
     }
 
     if (!test) {
-      await sendSlack(`*ClearLens Agent Run Complete — ${new Date().toLocaleTimeString()}*\n✅ Auto-published: ${autopublished}\n⏳ 2hr hold: ${held}\n👀 Needs review: ${needsReview}\n🗑 Discarded: ${discarded}\nNext run in 6 hours.`);
+      await sendSlack(`*ClearLens Agent Run Complete — ${new Date().toLocaleTimeString()}*\n✅ Auto-published: ${autopublished}\n⏳ 2hr hold: ${held}\n👀 Needs review: ${needsReview}\n🗑 Discarded: ${discarded}\nNext run in 30 minutes.`);
     }
 
     await writeStatus({ lastRun: startedAt, articlesGenerated: autopublished, topicsAnalyzed: selectedTopics.length, status: "idle", lastError: null });
@@ -740,7 +740,7 @@ export async function run({ baseUrl, test = false } = {}) {
     const message = String(error?.message || error);
     await writeStatus({ lastRun: startedAt, articlesGenerated: 0, topicsAnalyzed: 0, status: "error", lastError: message });
     if (!test) {
-      await sendSlack(`*ClearLens Agent Run Complete*\nPublished: 0 | Pending: 0 | Discarded: 0\nRun failed: ${message}\nNext run in 6 hours.`);
+      await sendSlack(`*ClearLens Agent Run Complete*\nPublished: 0 | Pending: 0 | Discarded: 0\nRun failed: ${message}\nNext run in 30 minutes.`);
     }
     const result = { success: false, articlesGenerated: 0, topicsAnalyzed: 0, topics: [], error: message, counts: { autopublished: 0, held: 0, needsReview: 0, discarded: 0 }, articles: [] };
     if (test && error?.debugInfo) {

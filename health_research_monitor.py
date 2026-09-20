@@ -943,7 +943,7 @@ def build_public_article_fallback(item, research_report, verified_sources):
     article = [
         headline,
         subheadline,
-        "By Public Health Research Desk",
+        "By ClearLens AI",
         f"Updated {datetime.now().strftime('%B %d, %Y')}",
         "",
         "What happened",
@@ -993,8 +993,7 @@ def build_public_article_fallback(item, research_report, verified_sources):
 
 def ensure_minimum_article_length(article_text, item, research_report, min_words=900):
     text = (article_text or "").strip()
-    if len(text.split()) >= min_words:
-        return text
+    return text  # padding disabled: never add filler
 
     findings = research_report.get("findings", {})
     keyword_list = research_report.get("keywords", [])[:8]
@@ -1090,10 +1089,7 @@ def enforce_publication_template(article_text, item, research_report):
     source_total = research_report.get("metadata", {}).get("total_sources_found", 0)
     reliability = (research_report.get("metadata", {}).get("reliability_score") or "medium").title()
 
-    subheadline = (
-        f"A reported public-health development reviewed against {source_total} corroborating references, "
-        f"with evidence currently assessed as {reliability.lower()}."
-    )
+    subheadline = f"Summary of a report from {item.get('source') or 'a public-health source'}."
 
     strip_headers = {
         "What happened",
@@ -1142,11 +1138,9 @@ def enforce_publication_template(article_text, item, research_report):
     formatted = (
         f"{title}\n"
         f"{subheadline}\n\n"
-        "By Public Health Research Desk\n"
+        "By ClearLens AI\n"
         f"Published {published_line}\n\n"
         f"{body}\n\n"
-        "A version of this article appears in print in the Public Health Research edition with the headline above.\n"
-        + "\n".join(related_lines)
     )
 
     return formatted.strip()
@@ -1173,10 +1167,8 @@ def validate_publication_template(article_text):
 
     joined = "\n".join(lines)
     required_fragments = [
-        "By Public Health Research Desk",
+        "By ClearLens AI",
         "Published ",
-        "A version of this article appears in print",
-        "Related:",
     ]
     for fragment in required_fragments:
         if fragment not in joined:
@@ -1203,7 +1195,7 @@ def validate_publication_template(article_text):
         return False
 
     # Must stay long-form narrative.
-    if len((article_text or "").split()) < 900:
+    if len((article_text or "").split()) < 120:
         return False
 
     return True
@@ -1247,16 +1239,12 @@ def generate_unbiased_article(item, research_report):
         "- Weave in specific facts, numbers, and context from the sources provided.\n"
         "- Maintain a neutral, factual tone. Present evidence accurately. Note uncertainty where it exists.\n"
         "- Do not use sensational language, advocacy framing, or recommendations.\n"
-        "- Target 900 to 1100 words.\n\n"
+        "- Use ONLY facts stated in the source content and supporting sources below. Do not add statistics, studies, quotes, organizations, dates, lot numbers, or background that are not in them. If a detail is missing, leave it out.\n"
+        "- Length follows the material: 150 to 400 words for a short notice such as a recall or alert, up to 700 for a substantial study. Never pad.\n"
+        "- For recalls and alerts: state what is affected (product, lots, dates), why, and what consumers should do.\n\n"
         "Formatting:\n"
-        "- Line 1: Headline that is compelling, specific, and under 12 words\n"
-        "- Line 2: Subheadline that is one sentence expanding on the headline\n"
-        "- Line 3: By Public Health Research Desk\n"
-        "- Line 4: Published <Month DD, YYYY>\n"
-        "- Then the article body in flowing prose paragraphs with no section headers.\n"
-        "- End with: A version of this article appears in print in the Public Health Research edition with the headline above.\n"
-        "- Then: Related:\n"
-        "- Then 1 to 2 related article titles.\n\n"
+        "- Output ONLY the article body as flowing paragraphs. Do NOT write a headline, subheadline, byline, date, print-edition line, or related links; the template adds those.\n"
+        "\n"
         f"Topic: {item.get('title', '')}\n"
         f"Source: {item.get('source', '')}\n"
         f"Date: {item.get('date', '')}\n"
