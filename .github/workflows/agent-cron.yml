@@ -1,13 +1,13 @@
 name: ClearLens Agent
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 */6 * * *'
     - cron: '0 9 * * 1'
   workflow_dispatch:
 
 jobs:
   run-agent:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/30 * * * *'
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

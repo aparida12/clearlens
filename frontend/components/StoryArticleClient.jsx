@@ -71,7 +71,7 @@ export default function StoryArticleClient({ article }) {
       <SiteHeader activePage="home" activeSection={activeSection} onSectionChange={setActiveSection} />
 
       <main className="page-container page-section-pad">
-        <ArticleView article={article} pollData={pollData || article?.consensus || null} pollLoading={pollLoading} />
+        <ArticleView article={article} pollData={pollData} pollLoading={pollLoading} />
       </main>
     </div>
   );
