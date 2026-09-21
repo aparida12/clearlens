@@ -103,7 +103,7 @@
     {% if featured_article %}
     <section class="featured-section">
       <div class="featured-main">
-        <p class="kicker">Today's Lead · {{ featured_article.source }}</p>
+        <p class="kicker">Today's Lead</p>
         <h2 class="featured-hl">
           <a href="{{ url_for('article_detail', slug=featured_article.slug) }}">{{ featured_article.headline }}</a>
         </h2>
@@ -158,7 +158,6 @@
       {% if recent_articles %}
         {% for article in recent_articles %}
         <div class="article-card">
-          <p class="card-source">{{ article.source }}</p>
           <h3 class="card-hl"><a href="{{ url_for('article_detail', slug=article.slug) }}">{{ article.headline }}</a></h3>
           <p class="card-summary">{{ article.summary[:200] }}{% if article.summary|length > 200 %}...{% endif %}</p>
           {% if article.consensus and article.consensus.stats %}
