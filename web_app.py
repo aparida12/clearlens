@@ -104,13 +104,21 @@ def format_date(iso_string):
         return iso_string or ""
 
 
+def parse_consensus(raw):
+    try:
+        data = json.loads(raw) if raw else {}
+        return data if isinstance(data, dict) and data.get("stats") else {}
+    except Exception:
+        return {}
+
+
 def load_generated_articles(limit=50):
     articles = []
     with get_conn() as conn:
         cur = run(
             conn,
             """
-            SELECT id, title, source, article_date, url, content, created_at
+            SELECT id, title, source, article_date, url, content, created_at, consensus_data
             FROM uploaded_articles
             ORDER BY created_at DESC
             LIMIT ?
@@ -136,7 +144,7 @@ def load_generated_articles(limit=50):
             "generated_at": row["created_at"] or "",
             "date_formatted": format_date(row["created_at"] or ""),
             "social": {},
-            "consensus": {},
+            "consensus": parse_consensus(row["consensus_data"]),
             "research_sources": [],
         })
 
@@ -162,7 +170,7 @@ def article_detail(slug):
     with get_conn() as conn:
         cur = run(
             conn,
-            "SELECT id, title, source, url, content, created_at FROM uploaded_articles WHERE id = ?",
+            "SELECT id, title, source, url, content, created_at, consensus_data FROM uploaded_articles WHERE id = ?",
             (slug,)
         )
         row = cur.fetchone()
@@ -190,7 +198,7 @@ def article_detail(slug):
             "image_url": "",
             "date_formatted": format_date(row["created_at"] or ""),
             "social": {},
-            "consensus": {},
+            "consensus": parse_consensus(row["consensus_data"]),
             "research_sources": [],
         },
         related_articles=related,

@@ -106,6 +106,7 @@ RESEARCH_DEPTH = os.getenv("RESEARCH_DEPTH", "exhaustive")
 RUN_SCHEDULE_TIME = os.getenv("RUN_SCHEDULE_TIME", "09:00")
 RUN_SCHEDULE_TIMES = os.getenv("RUN_SCHEDULE_TIMES", "")
 RUN_INTERVAL_HOURS = int(os.getenv("RUN_INTERVAL_HOURS", "0"))
+RUN_INTERVAL_MINUTES = int(os.getenv("RUN_INTERVAL_MINUTES", "0"))
 GENERATED_REPORTS_DIR = Path(os.getenv("GENERATED_REPORTS_DIR", "generated_reports"))
 SMTP_TIMEOUT = int(os.getenv("SMTP_TIMEOUT", "60"))
 SMTP_MAX_RETRIES = int(os.getenv("SMTP_MAX_RETRIES", "3"))
@@ -1690,6 +1691,49 @@ def init_uploaded_articles_table(conn):
         conn.commit()
 
 
+def compute_consensus(title, research_report):
+    """Classify verified sources against the headline. Returns None if it can't be done honestly."""
+    try:
+        recs = collect_verified_source_records(research_report, max_records=8)
+        if len(recs) < 3:
+            return None
+        listing = "\n".join(
+            f"{n}. {r.get('source','')}: {r.get('title','')} - {(r.get('summary') or '')[:300]}"
+            for n, r in enumerate(recs, 1)
+        )
+        prompt = (
+            "Classify each numbered source by what its title and summary say about this claim, using ONLY the text given. "
+            "stance must be one of: supports, disputes, mixed, neutral (neutral = relevant but does not confirm or contradict, or unrelated). "
+            "Do not add sources. Return ONLY JSON: "
+            '{"centralClaim":"one sentence","sources":[{"n":1,"stance":"neutral","reason":"one sentence"}]}\n\n'
+            f"Claim: {title}\n\nSources:\n{listing}"
+        )
+        completion = groq_chat_completion(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1, max_tokens=1200, reasoning_effort="low",
+        )
+        raw = completion.choices[0].message.content or ""
+        m = re.search(r"\{.*\}", raw, flags=re.S)
+        data = json.loads(m.group(0))
+        allowed = {"supports", "disputes", "mixed", "neutral"}
+        out, stats = [], {"supports": 0, "disputes": 0, "mixed": 0, "neutral": 0}
+        for row in data.get("sources", []):
+            n = int(row.get("n", 0))
+            if not 1 <= n <= len(recs):
+                continue
+            stance = row.get("stance") if row.get("stance") in allowed else "neutral"
+            stats[stance] += 1
+            out.append({"outlet": recs[n - 1].get("source", ""), "stance": stance, "reason": str(row.get("reason", ""))[:300]})
+        if len(out) < 3:
+            return None
+        stats["total"] = len(out)
+        return {"centralClaim": str(data.get("centralClaim", title))[:300], "summary": "", "stats": stats, "sources": out}
+    except Exception as exc:
+        print(f"Consensus computation failed: {exc}")
+        return None
+
+
 def publish_article_to_web(item, article_text, attachment_name="", research_report=None):
     title = (item.get("title") or "Public Health Update").strip()
     source = (item.get("source") or "Automated Research Desk").strip()
@@ -1699,6 +1743,8 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
     report = research_report if isinstance(research_report, dict) else {}
     research_data = json.dumps(report, ensure_ascii=False)
     research_sources = json.dumps(collect_verified_source_records(report, max_records=0), ensure_ascii=False)
+    if not report.get("consensus"):
+        report["consensus"] = compute_consensus(title, report)
     consensus_data = json.dumps(report.get("consensus"), ensure_ascii=False) if report.get("consensus") else None
     created_at = datetime.utcnow().isoformat(timespec="seconds")
 
@@ -2059,7 +2105,10 @@ if __name__ == "__main__":
     run_monitor()
 
     # Schedule by interval when configured, otherwise use fixed daily times.
-    if RUN_INTERVAL_HOURS > 0:
+    if RUN_INTERVAL_MINUTES > 0:
+        schedule.every(RUN_INTERVAL_MINUTES).minutes.do(run_monitor)
+        print(f"Health research monitor started. Running every {RUN_INTERVAL_MINUTES} minutes.")
+    elif RUN_INTERVAL_HOURS > 0:
         schedule.every(RUN_INTERVAL_HOURS).hours.do(run_monitor)
         print(f"Health research monitor started. Running every {RUN_INTERVAL_HOURS} hours.")
     else:
