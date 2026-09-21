@@ -1,3 +1,4 @@
+import re
 import json
 import os
 import sqlite3
@@ -112,6 +113,26 @@ def parse_consensus(raw):
         return {}
 
 
+def strip_byline(text):
+    """Hide byline/date/print-edition lines from stored article text at render time."""
+    out, seen = [], 0
+    for ln in (text or "").split("\n"):
+        t = ln.strip()
+        if t:
+            seen += 1
+            if seen <= 8 and len(t) < 60 and (
+                re.match(r"^By [A-Z][\w .&'-]*$", t)
+                or re.match(r"^(Published|Updated) [A-Z][a-z]+ \d{1,2}, \d{4}$", t)
+            ):
+                continue
+            if t.startswith("Summary of a report from") or t.startswith("A reported public-health development reviewed against"):
+                continue
+            if t.startswith("A version of this article appears in print"):
+                continue
+        out.append(ln)
+    return "\n".join(out)
+
+
 def load_generated_articles(limit=50):
     articles = []
     with get_conn() as conn:
@@ -128,9 +149,9 @@ def load_generated_articles(limit=50):
         rows = cur.fetchall()
 
     for row in rows:
-        content = row["content"] or ""
+        content = strip_byline(row["content"] or "")
         lines = [l.strip() for l in content.split("\n") if l.strip()]
-        summary = lines[2] if len(lines) > 2 else (lines[0] if lines else "")
+        summary = lines[1] if len(lines) > 1 else (lines[0] if lines else "")
 
         articles.append({
             "slug": str(row["id"]),
@@ -178,9 +199,9 @@ def article_detail(slug):
     if row is None:
         abort(404)
 
-    content = row["content"] or ""
+    content = strip_byline(row["content"] or "")
     lines = [l.strip() for l in content.split("\n") if l.strip()]
-    summary = lines[2] if len(lines) > 2 else (lines[0] if lines else "")
+    summary = lines[1] if len(lines) > 1 else (lines[0] if lines else "")
 
     all_articles = load_generated_articles(limit=20)
     related = [a for a in all_articles if a["slug"] != slug][:6]

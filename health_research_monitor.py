@@ -1090,7 +1090,7 @@ def enforce_publication_template(article_text, item, research_report):
     source_total = research_report.get("metadata", {}).get("total_sources_found", 0)
     reliability = (research_report.get("metadata", {}).get("reliability_score") or "medium").title()
 
-    subheadline = f"Summary of a report from {item.get('source') or 'a public-health source'}."
+    subheadline = ""
 
     strip_headers = {
         "What happened",
