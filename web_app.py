@@ -105,6 +105,14 @@ def format_date(iso_string):
         return iso_string or ""
 
 
+def parse_credit(raw):
+    try:
+        d = json.loads(raw) if raw else {}
+        return d if isinstance(d, dict) and d.get("name") else {}
+    except Exception:
+        return {}
+
+
 def parse_consensus(raw):
     try:
         data = json.loads(raw) if raw else {}
@@ -139,7 +147,7 @@ def load_generated_articles(limit=50):
         cur = run(
             conn,
             """
-            SELECT id, title, source, article_date, url, content, created_at, consensus_data
+            SELECT id, title, source, article_date, url, content, created_at, consensus_data, image_url, image_credit
             FROM uploaded_articles
             ORDER BY created_at DESC
             LIMIT ?
@@ -161,7 +169,8 @@ def load_generated_articles(limit=50):
             "takeaway": "",
             "source": row["source"] or "ClearLens",
             "source_url": row["url"] or "",
-            "image_url": "",
+            "image_url": row["image_url"] or "",
+            "image_credit": parse_credit(row["image_credit"]),
             "generated_at": row["created_at"] or "",
             "date_formatted": format_date(row["created_at"] or ""),
             "social": {},
@@ -191,7 +200,7 @@ def article_detail(slug):
     with get_conn() as conn:
         cur = run(
             conn,
-            "SELECT id, title, source, url, content, created_at, consensus_data FROM uploaded_articles WHERE id = ?",
+            "SELECT id, title, source, url, content, created_at, consensus_data, image_url, image_credit FROM uploaded_articles WHERE id = ?",
             (slug,)
         )
         row = cur.fetchone()
@@ -216,7 +225,8 @@ def article_detail(slug):
             "takeaway": "",
             "source": row["source"] or "ClearLens",
             "source_url": row["url"] or "",
-            "image_url": "",
+            "image_url": row["image_url"] or "",
+            "image_credit": parse_credit(row["image_credit"]),
             "date_formatted": format_date(row["created_at"] or ""),
             "social": {},
             "consensus": parse_consensus(row["consensus_data"]),

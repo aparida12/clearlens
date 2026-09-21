@@ -182,6 +182,7 @@
     {% if article.image_url %}
     <figure class="hero-figure">
       <img src="{{ article.image_url }}" alt="{{ article.headline }}" loading="eager" />
+      {% if article.image_credit %}<p class="hero-caption">Photo: <a href="{{ article.image_credit.url }}" target="_blank" rel="noopener">{{ article.image_credit.name }}</a> / <a href="https://unsplash.com/?utm_source=clearlens&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a></p>{% endif %}
       <figcaption class="hero-caption">Image provided with the original reporting.</figcaption>
     </figure>
     {% endif %}

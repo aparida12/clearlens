@@ -1734,6 +1734,58 @@ def compute_consensus(title, research_report):
         return None
 
 
+def fetch_unsplash_image(title):
+    """Return {url, name, profile} for a broad, neutral photo, or None."""
+    key = os.getenv("UNSPLASH_ACCESS_KEY", "").strip()
+    if not key:
+        return None
+    try:
+        completion = groq_chat_completion(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": (
+                "Give a 2 to 4 word Unsplash search query for a generic, neutral photo that fits this news headline's topic. "
+                "Use a broad scene or object (e.g. 'grocery shelf', 'laboratory', 'hospital corridor'). "
+                "Never name people, brands, or places. If nothing neutral fits, answer NONE. "
+                "Reply with only the query.\n\nHeadline: " + title)}],
+            temperature=0.1, max_tokens=300, reasoning_effort="low",
+        )
+        lines = (completion.choices[0].message.content or "").strip().strip('"').splitlines()
+        query = lines[0][:60].strip() if lines else ""
+        if not query or query.upper().startswith("NONE"):
+            return None
+        headers = {"Authorization": f"Client-ID {key}", "Accept-Version": "v1"}
+        r = requests.get("https://api.unsplash.com/search/photos",
+                         params={"query": query, "per_page": 1, "orientation": "landscape", "content_filter": "high"},
+                         headers=headers, timeout=15)
+        r.raise_for_status()
+        results = r.json().get("results") or []
+        if not results:
+            return None
+        ph = results[0]
+        try:
+            requests.get(ph["links"]["download_location"], headers=headers, timeout=10)
+        except Exception:
+            pass
+        return {"url": ph["urls"]["regular"], "name": ph["user"]["name"],
+                "profile": ph["user"]["links"]["html"] + "?utm_source=clearlens&utm_medium=referral"}
+    except Exception as exc:
+        print(f"Image fetch failed: {exc}")
+        return None
+
+
+def attach_image(title, source, article_date):
+    img = fetch_unsplash_image(title)
+    if not img:
+        return
+    with get_conn() as conn:
+        run(conn,
+            "UPDATE uploaded_articles SET image_url = ?, image_credit = ? "
+            "WHERE title = ? AND source = ? AND article_date = ? AND (image_url IS NULL OR image_url = '')",
+            (img["url"], json.dumps({"name": img["name"], "url": img["profile"]}), title, source, article_date))
+        if not IS_POSTGRES:
+            conn.commit()
+
+
 def publish_article_to_web(item, article_text, attachment_name="", research_report=None):
     title = (item.get("title") or "Public Health Update").strip()
     source = (item.get("source") or "Automated Research Desk").strip()
@@ -1794,6 +1846,10 @@ def publish_article_to_web(item, article_text, attachment_name="", research_repo
         if not IS_POSTGRES:
             web_conn.commit()
 
+    try:
+        attach_image(title, source, article_date)
+    except Exception as exc:
+        print(f"Image attach skipped: {exc}")
     return True
 
 
