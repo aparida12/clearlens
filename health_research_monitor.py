@@ -481,29 +481,21 @@ def is_public_health_relevant(item):
         return False
 
     required_any = [
-        "public health",
-        "pandemic",
-        "outbreak",
-        "recall",
-        "safety alert",
-        "vaccine",
-        "clinical trial",
-        "epidemi",
-        "mortality",
-        "hospital",
-        "fda",
-        "cdc",
-        "who",
-        "adverse event",
-        "drug safety",
-        "approval",
-        "guideline",
-        "infectious",
-        "health policy",
-        "screening",
-        "prevention",
+        "public health", "pandemic", "outbreak", "recall", "safety alert",
+        "vaccin", "immuniz", "clinical trial", "epidemi", "mortality",
+        "hospital", "adverse event", "drug safety", "approval", "guideline",
+        "infectio", "health policy", "screening", "prevention",
+        "ebola", "measles", "tuberculosis", "influenza", "covid", "rsv",
+        "e. coli", "salmonella", "listeria", "contamina", "food safety",
+        "surveillance", "health department", "overdose", "opioid",
+        "blood pressure", "hypertension", "cardiac arrest",
+        "ultra-processed", "air quality", "mental health", "nutrition",
     ]
-    return any(term in combined for term in required_any)
+    word_terms = [r"\bwho\b", r"\bcdc\b", r"\bfda\b", r"\bpaho\b", r"\bcpr\b"]
+    return (
+        any(term in combined for term in required_any)
+        or any(re.search(p, combined) for p in word_terms)
+    )
 
 
 def is_duplicate(conn, item):
