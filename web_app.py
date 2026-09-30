@@ -141,7 +141,7 @@ def strip_byline(text):
     return "\n".join(out)
 
 
-def load_generated_articles(limit=50):
+def load_generated_articles(limit=50, offset=0):
     articles = []
     with get_conn() as conn:
         cur = run(
@@ -150,9 +150,9 @@ def load_generated_articles(limit=50):
             SELECT id, title, source, article_date, url, content, created_at, consensus_data, image_url, image_credit
             FROM uploaded_articles
             ORDER BY created_at DESC
-            LIMIT ?
+            LIMIT ? OFFSET ?
             """,
-            (limit,)
+            (limit, offset)
         )
         rows = cur.fetchall()
 
@@ -181,16 +181,37 @@ def load_generated_articles(limit=50):
     return articles
 
 
+def count_generated_articles():
+    with get_conn() as conn:
+        cur = run(conn, "SELECT COUNT(*) FROM uploaded_articles")
+        return cur.fetchone()[0]
+
+
 @app.route("/", methods=["GET"])
 def public_home():
-    articles = load_generated_articles(limit=50)
-    featured = articles[0] if articles else None
-    recent = articles[1:21] if len(articles) > 1 else []
+    from flask import request
+    per_page = 20
+    total = count_generated_articles()
+    total_pages = max(1, -(-(total - 1) // per_page))
+    page = min(max(request.args.get("page", 1, type=int), 1), total_pages)
+
+    if page == 1:
+        articles = load_generated_articles(limit=per_page + 1, offset=0)
+        featured = articles[0] if articles else None
+        recent = articles[1:]
+    else:
+        featured = None
+        recent = load_generated_articles(limit=per_page, offset=1 + (page - 1) * per_page)
+
     return render_template(
         "public_home.html",
         featured_article=featured,
         recent_articles=recent,
-        total_articles=len(articles),
+        total_articles=total,
+        page=page,
+        total_pages=total_pages,
+        has_prev=page > 1,
+        has_next=page < total_pages,
         today=datetime.now().strftime("%B %d, %Y"),
     )
 
