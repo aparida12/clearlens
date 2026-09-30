@@ -175,6 +175,9 @@ INSTITUTIONAL_SOURCE_DOMAINS = [
     "ema.europa.eu",
     "ecdc.europa.eu",
     "gov.uk",
+    "paho.org",
+    "europa.eu",
+    "nhs.uk",
 ]
 
 SENSATIONAL_WORD_REPLACEMENTS = {
@@ -911,7 +914,7 @@ def count_institutional_sources(research_report):
                 host = urlparse(url).netloc.lower().split(":")[0]
             except Exception:
                 continue
-            if any(host == d or host.endswith(f".{d}") for d in INSTITUTIONAL_SOURCE_DOMAINS):
+            if host.endswith(".gov") or host.endswith(".gov.uk") or any(host == d or host.endswith(f".{d}") for d in INSTITUTIONAL_SOURCE_DOMAINS):
                 urls.add(url)
 
     return len(urls)
@@ -1961,6 +1964,12 @@ def run_monitor():
                 continue
 
             if institutional_count < min_institutional_sources:
+                try:
+                    _b = ("corroborating_studies", "related_news", "complementary_research")
+                    _h = sorted({urlparse((e.get("url") or "")).netloc.lower() for k in _b for e in report.get("findings", {}).get(k, [])})
+                    print(f"  debug hosts found: {_h[:12]}")
+                except Exception:
+                    pass
                 print(
                     f"Skipped item due to insufficient institutional sources ({institutional_count} < {min_institutional_sources}): "
                     f"{item.get('title', 'Untitled')}"
