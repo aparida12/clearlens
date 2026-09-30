@@ -113,7 +113,7 @@ def parse_credit(raw):
         return {}
 
 
-def parse_consensus(raw):
+def _parse_consensus_raw(raw):
     try:
         data = json.loads(raw) if raw else {}
         return data if isinstance(data, dict) and data.get("stats") else {}
@@ -139,6 +139,18 @@ def strip_byline(text):
                 continue
         out.append(ln)
     return "\n".join(out)
+
+
+def parse_consensus(*args, **kwargs):
+    """Hide the consensus box when no source actually took a position."""
+    c = _parse_consensus_raw(*args, **kwargs)
+    try:
+        st = (c or {}).get("stats") or {}
+        if c and (st.get("supports", 0) + st.get("disputes", 0) + st.get("mixed", 0)) == 0:
+            return None
+    except Exception:
+        pass
+    return c
 
 
 def load_generated_articles(limit=50, offset=0):

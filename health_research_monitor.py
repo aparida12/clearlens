@@ -1721,7 +1721,7 @@ def compute_consensus(title, research_report):
         )
         prompt = (
             "Classify each numbered source by what its title and summary say about this claim, using ONLY the text given. "
-            "stance must be one of: supports, disputes, mixed, neutral (neutral = relevant but does not confirm or contradict, or unrelated). "
+            "stance must be one of: supports, disputes, mixed, neutral, unrelated (neutral = about this same specific event or claim but neither confirms nor contradicts it; unrelated = about a different topic, even if it shares keywords). "
             "Do not add sources. Return ONLY JSON: "
             '{"centralClaim":"one sentence","sources":[{"n":1,"stance":"neutral","reason":"one sentence"}]}\n\n'
             f"Claim: {title}\n\nSources:\n{listing}"
@@ -1734,13 +1734,15 @@ def compute_consensus(title, research_report):
         raw = completion.choices[0].message.content or ""
         m = re.search(r"\{.*\}", raw, flags=re.S)
         data = json.loads(m.group(0))
-        allowed = {"supports", "disputes", "mixed", "neutral"}
+        allowed = {"supports", "disputes", "mixed", "neutral", "unrelated"}
         out, stats = [], {"supports": 0, "disputes": 0, "mixed": 0, "neutral": 0}
         for row in data.get("sources", []):
             n = int(row.get("n", 0))
             if not 1 <= n <= len(recs):
                 continue
             stance = row.get("stance") if row.get("stance") in allowed else "neutral"
+            if stance == "unrelated":
+                continue
             stats[stance] += 1
             out.append({"outlet": recs[n - 1].get("source", ""), "stance": stance, "reason": str(row.get("reason", ""))[:300]})
         if len(out) < 3:
