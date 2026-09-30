@@ -211,6 +211,12 @@ LOW_IMPACT_TITLE_PATTERNS = [
 ]
 
 RSS_SOURCES = [
+    {"source": "Google News Outbreaks", "url": "https://news.google.com/rss/search?q=outbreak+OR+epidemic+OR+measles+OR+ebola+OR+tuberculosis+when:2d&hl=en-US&gl=US&ceid=US:en"},
+    {"source": "Google News Vaccines", "url": "https://news.google.com/rss/search?q=vaccine+OR+immunization+OR+CDC+advisory+when:2d&hl=en-US&gl=US&ceid=US:en"},
+    {"source": "Google News Food Safety", "url": "https://news.google.com/rss/search?q=foodborne+illness+OR+salmonella+OR+listeria+OR+%22E.+coli%22+OR+recall+when:2d&hl=en-US&gl=US&ceid=US:en"},
+    {"source": "Google News WHO", "url": "https://news.google.com/rss/search?q=site:who.int+when:3d&hl=en-US&gl=US&ceid=US:en"},
+    {"source": "Google News NIH", "url": "https://news.google.com/rss/search?q=site:nih.gov+when:3d&hl=en-US&gl=US&ceid=US:en"},
+    {"source": "Google News FDA", "url": "https://news.google.com/rss/search?q=site:fda.gov+safety+OR+warning+OR+recall+when:3d&hl=en-US&gl=US&ceid=US:en"},
     {
         "source": "Google News Health",
         "url": "https://news.google.com/rss/search?q=public+health+OR+outbreak+OR+recall+OR+guideline&hl=en-US&gl=US&ceid=US:en",
