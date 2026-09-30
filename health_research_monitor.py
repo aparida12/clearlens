@@ -125,6 +125,8 @@ BUZZ_CONFIDENCE_FLOOR = int(os.getenv("BUZZ_CONFIDENCE_FLOOR", "64"))
 MIN_BUZZ_NEWS_SOURCES = int(os.getenv("MIN_BUZZ_NEWS_SOURCES", "6"))
 MIN_BUZZ_TOTAL_SOURCES = int(os.getenv("MIN_BUZZ_TOTAL_SOURCES", "12"))
 MIN_POPULATION_IMPACT_SCORE = int(os.getenv("MIN_POPULATION_IMPACT_SCORE", "16"))
+MIN_SOURCE_TEXT_CHARS = int(os.getenv("MIN_SOURCE_TEXT_CHARS", "400"))
+MAX_UNGROUNDED_CLAIMS = int(os.getenv("MAX_UNGROUNDED_CLAIMS", "1"))
 APPROVAL_MODE = os.getenv("APPROVAL_MODE", "automatic").strip().lower()
 QUALITY_MODE = os.getenv("QUALITY_MODE", "strict").strip().lower()
 STRICT_MIN_CONFIDENCE_SCORE = int(os.getenv("STRICT_MIN_CONFIDENCE_SCORE", "90"))
@@ -919,6 +921,57 @@ def collect_verified_source_records(research_report, max_records=5):
     if max_records <= 0:
         return records
     return records[:max_records]
+
+
+def _grounding_pool(item, report):
+    parts = [item.get("title") or "", item.get("text") or ""]
+    for bucket in ("corroborating_studies", "related_news", "complementary_research"):
+        for e in report.get("findings", {}).get(bucket, []):
+            parts.append(e.get("title") or "")
+            parts.append(e.get("summary") or "")
+    return " ".join(parts)
+
+
+def passes_grounding_checks(item, report, article_text):
+    """Reject articles that state facts not present in the source material."""
+    title = (item.get("title") or "")[:80]
+    pool = _grounding_pool(item, report)
+    pool_flat = re.sub(r"[,\s]", "", pool.lower())
+    body = article_text.split("Verified Sources")[0]
+
+    bad_numbers = []
+    for m in re.findall(r"\d[\d,]*\.?\d*", body):
+        n = m.replace(",", "").rstrip(".")
+        if len(n) < 2 or n in ("2024", "2025", "2026"):
+            continue
+        if n not in pool_flat:
+            bad_numbers.append(m)
+    if bad_numbers:
+        print(f"Skipped item: numbers not in source {bad_numbers[:5]}: {title}")
+        return False
+
+    try:
+        prompt = (
+            "You are a strict fact-checker. The SOURCE TEXT is the only permitted evidence. "
+            "List every specific claim in the ARTICLE (names, job titles, product or brand names, lot codes, "
+            "pathogen strains, locations, dates, legal or regulatory statuses) that is NOT stated in the SOURCE TEXT. "
+            'Return ONLY JSON: {"unsupported": ["short description"]}\n\n'
+            f"SOURCE TEXT:\n{pool[:6000]}\n\nARTICLE:\n{body[:4000]}"
+        )
+        completion = groq_chat_completion(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0, max_tokens=800, reasoning_effort="low",
+        )
+        raw = completion.choices[0].message.content or ""
+        unsupported = json.loads(re.search(r"\{.*\}", raw, flags=re.S).group(0)).get("unsupported", [])
+    except Exception as exc:
+        print(f"Skipped item: grounding check failed ({exc}): {title}")
+        return False
+    if len(unsupported) > MAX_UNGROUNDED_CLAIMS:
+        print(f"Skipped item: {len(unsupported)} unsupported claims {unsupported[:3]}: {title}")
+        return False
+    return True
 
 
 def item_is_institutional(item):
@@ -2035,7 +2088,12 @@ def run_monitor():
                 )
                 continue
 
+            if len((item.get("text") or "").strip()) < MIN_SOURCE_TEXT_CHARS:
+                print(f"Skipped item: source text too thin ({len((item.get('text') or '').strip())} chars): {item.get('title', '')[:80]}")
+                continue
             article_text = generate_unbiased_article(item, report)
+            if not passes_grounding_checks(item, report, article_text):
+                continue
             confidence = confidence_from_research_report(report)
             buzz = evaluate_buzz_context(item, report)
             required_confidence = min_confidence_score
