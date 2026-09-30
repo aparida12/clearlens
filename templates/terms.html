@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Search — ClearLens</title>
+  <title>Terms of Use — ClearLens</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
@@ -33,6 +33,13 @@
     .search-form input:focus{border-color:#00B2CC}
     .search-form button{padding:.65rem 1.25rem;font:inherit;font-size:.8rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:#0B2A55;color:#fff;border:1px solid #0B2A55;border-radius:0 4px 4px 0;cursor:pointer}
     .search-form button:hover{background:#00B2CC;border-color:#00B2CC}
+    .site-footer a{color:var(--ink-2)}
+    .legal{max-width:760px;margin:2.5rem auto 3rem}
+    .legal h1{font-family:'Playfair Display',serif;font-size:2.4rem;margin-bottom:.5rem}
+    .legal h2{font-family:'Playfair Display',serif;font-size:1.25rem;margin:1.75rem 0 .5rem}
+    .legal p,.legal li{font-size:.95rem;color:var(--ink-2);line-height:1.75;margin-bottom:.75rem}
+    .legal ul{padding-left:1.5rem}
+    .legal .upd{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
     .page-wrap{max-width:1280px;margin:0 auto;padding:0 2.5rem}
     .featured-section{display:grid;grid-template-columns:1fr 320px;gap:0;border-bottom:1px solid var(--paper-3);margin-top:2.5rem}
     .featured-main{padding-right:2.5rem;border-right:0.5px solid var(--paper-3)}
@@ -109,24 +116,32 @@
       </form>
     </div>
   </header>
-
   <div class="page-wrap">
-    <div class="section-divider">
-      <h2>{% if q %}{{ total }} result{{ '' if total == 1 else 's' }} for "{{ q }}"{% else %}Enter a search term{% endif %}</h2><hr/>
-    </div>
-    <div class="articles-grid">
-      {% for article in results %}
-      <div class="article-card">
-        <h3 class="card-hl"><a href="{{ url_for('article_detail', slug=article.slug) }}">{{ article.headline }}</a></h3>
-        <p class="card-summary">{{ article.summary[:200] }}{% if article.summary|length > 200 %}...{% endif %}</p>
-        <p class="card-date">{{ article.date_formatted }}</p>
-      </div>
-      {% else %}
-      <div class="empty-state">{% if q %}No articles matched. Try a different word.{% else %}Type something in the search bar above.{% endif %}</div>
-      {% endfor %}
-    </div>
-  </div>
+    <main class="legal">
+      <h1>Terms of Use</h1>
+      <p class="upd">Last updated September 30, 2026</p>
+<p>By using ClearLens (the "Site"), you agree to these terms. If you do not agree, please do not use the Site.</p>
+<h2>Use of the Site</h2>
+<p>You may use the Site for personal, non-commercial purposes. You agree not to scrape or copy it at scale, attempt to disrupt or gain unauthorized access to it, or use it unlawfully.</p>
+<h2>Content and intellectual property</h2>
+<p>The ClearLens name, logo, and design belong to us. Articles summarize third-party material, and the underlying works belong to their respective owners. You may share links to ClearLens pages and quote short excerpts with attribution, but you may not republish the Site's content wholesale.</p>
+<h2>No warranties</h2>
+<p>The Site and all content are provided "as is" and "as available," without warranties of any kind, express or implied, including accuracy, reliability, fitness for a particular purpose, and non-infringement. See our <a href="/disclaimer">Disclaimer</a>.</p>
+<h2>Limitation of liability</h2>
+<p>To the fullest extent permitted by law, ClearLens and its owners, operators, and contributors are not liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss arising from your use of, or reliance on, the Site or its content. Our total liability for any claim relating to the Site is limited to US $100.</p>
+<h2>Links to other sites</h2>
+<p>We link to third-party sites we do not control and are not responsible for their content or practices.</p>
+<h2>Takedown and corrections</h2>
+<p>If you believe content on the Site infringes your rights or contains an error about you, email <a href="mailto:clearlens.live@gmail.com">clearlens.live@gmail.com</a> with the page link and details, and we will review it promptly.</p>
+<h2>Changes</h2>
+<p>We may update these terms at any time. Continued use of the Site means you accept the updated terms.</p>
+<h2>Governing law</h2>
+<p>These terms are governed by the laws of the State of Massachusetts, without regard to conflict-of-law rules.</p>
+<h2>Contact</h2>
+<p><a href="mailto:clearlens.live@gmail.com">clearlens.live@gmail.com</a></p>
 
+    </main>
+  </div>
   <footer class="site-footer">
     <p>ClearLens — AI-sourced news analyzed across multiple outlets for full transparency</p>
     <p style="margin-top:.75rem"><a href="/about">About</a> · <a href="/disclaimer">Disclaimer</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></p>

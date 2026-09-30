@@ -217,6 +217,26 @@ def public_home():
     )
 
 
+@app.route("/about", methods=["GET"])
+def about_page():
+    return render_template("about.html", today=datetime.now().strftime("%B %d, %Y"))
+
+
+@app.route("/disclaimer", methods=["GET"])
+def disclaimer_page():
+    return render_template("disclaimer.html", today=datetime.now().strftime("%B %d, %Y"))
+
+
+@app.route("/terms", methods=["GET"])
+def terms_page():
+    return render_template("terms.html", today=datetime.now().strftime("%B %d, %Y"))
+
+
+@app.route("/privacy", methods=["GET"])
+def privacy_page():
+    return render_template("privacy.html", today=datetime.now().strftime("%B %d, %Y"))
+
+
 @app.route("/search", methods=["GET"])
 def search_articles():
     from flask import request

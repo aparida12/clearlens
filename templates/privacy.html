@@ -13,90 +13,139 @@
       --ink:#0f0e0c;--ink-2:#5a5751;--ink-3:#9a9690;
       --paper:#faf8f4;--paper-2:#f2ede4;--paper-3:#e0d8cc;
       --accent:#c0392b;
+      --agree:#1a7a4a;--dispute:#c0392b;--mixed:#b07d12;--neutral-c:#9a9690;
     }
     html{font-size:16px}
-    body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:400;line-height:1.7;min-height:100vh}
-    .site-nav{border-bottom:2px solid var(--ink);padding:.75rem 2.5rem;display:flex;align-items:center;justify-content:space-between}
-    .nav-back{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-decoration:none}
-    .nav-back:hover{color:var(--accent)}
-    .nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--ink);text-decoration:none}
-    .page-wrap{max-width:720px;margin:0 auto;padding:3rem 2.5rem}
-    .page-kicker{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
-    .page-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:900;line-height:1.1;margin-bottom:1.5rem}
-    .updated{font-size:.75rem;color:var(--ink-3);margin-bottom:2rem}
-    .policy-section{margin-bottom:2rem}
-    .policy-section h2{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin-bottom:.75rem}
-    .policy-section p,.policy-section li{font-size:.92rem;color:var(--ink-2);margin-bottom:.6rem}
-    .policy-section ul{padding-left:1.25rem}
+    body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:400;line-height:1.6;min-height:100vh}
+    .masthead{border-bottom:2px solid var(--ink)}
+    .masthead-top{display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;border-bottom:0.5px solid var(--paper-3)}
+    .mast-date{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase}
+    .mast-tag{font-size:.72rem;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase;background:var(--paper-2);padding:.25rem .75rem;border-radius:2px}
+    .masthead-main{padding:2rem 2.5rem 1.5rem;text-align:center}
+    .masthead-main h1{font-family:'Playfair Display',serif;font-size:clamp(3rem,8vw,6rem);font-weight:900;letter-spacing:-.02em;line-height:1}
+    .mast-rule{display:flex;align-items:center;gap:1rem;margin-top:.75rem}
+    .mast-rule hr{flex:1;border:none;border-top:0.5px solid var(--paper-3)}
+    .mast-tagline{font-size:.8rem;color:var(--ink-2);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap}
+    .logo-link{display:inline-block;line-height:0}
+    .logo-link img{height:clamp(90px,14vw,140px);width:auto;display:block;margin:0 auto}
+    .search-form{display:flex;max-width:520px;margin:1.25rem auto 0}
+    .search-form input{flex:1;padding:.65rem 1rem;font:inherit;font-size:.9rem;border:1px solid var(--paper-3);border-right:none;border-radius:4px 0 0 4px;background:#fff;color:var(--ink);outline:none}
+    .search-form input:focus{border-color:#00B2CC}
+    .search-form button{padding:.65rem 1.25rem;font:inherit;font-size:.8rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:#0B2A55;color:#fff;border:1px solid #0B2A55;border-radius:0 4px 4px 0;cursor:pointer}
+    .search-form button:hover{background:#00B2CC;border-color:#00B2CC}
+    .site-footer a{color:var(--ink-2)}
+    .legal{max-width:760px;margin:2.5rem auto 3rem}
+    .legal h1{font-family:'Playfair Display',serif;font-size:2.4rem;margin-bottom:.5rem}
+    .legal h2{font-family:'Playfair Display',serif;font-size:1.25rem;margin:1.75rem 0 .5rem}
+    .legal p,.legal li{font-size:.95rem;color:var(--ink-2);line-height:1.75;margin-bottom:.75rem}
+    .legal ul{padding-left:1.5rem}
+    .legal .upd{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+    .page-wrap{max-width:1280px;margin:0 auto;padding:0 2.5rem}
+    .featured-section{display:grid;grid-template-columns:1fr 320px;gap:0;border-bottom:1px solid var(--paper-3);margin-top:2.5rem}
+    .featured-main{padding-right:2.5rem;border-right:0.5px solid var(--paper-3)}
+    .kicker{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
+    .featured-hl{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;line-height:1.15;margin-bottom:1rem}
+    .featured-hl a{color:inherit;text-decoration:none}
+    .featured-hl a:hover{color:var(--accent)}
+    .byline{font-size:.78rem;color:var(--ink-3);letter-spacing:.04em;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+    .byline-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-3);display:inline-block}
+    .featured-summary{font-size:1.05rem;line-height:1.75;color:var(--ink-2);margin-bottom:1.5rem;border-left:3px solid var(--accent);padding-left:1rem}
+    .read-more{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:.1rem;transition:gap .2s}
+    .read-more:hover{gap:.75rem}
+    .consensus-box{background:var(--paper-2);border:0.5px solid var(--paper-3);border-radius:4px;padding:1.25rem;margin-top:1.5rem}
+    .c-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.75rem}
+    .c-claim{font-size:.85rem;color:var(--ink-2);margin-bottom:1rem;font-style:italic}
+    .c-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin-bottom:.6rem}
+    .c-bar-mini{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:1px;margin-bottom:.4rem}
+    .seg{border-radius:2px;transition:flex .6s ease}
+    .seg-agree{background:var(--agree)}
+    .seg-dispute{background:var(--dispute)}
+    .seg-mixed{background:var(--mixed)}
+    .seg-neutral{background:var(--paper-3)}
+    .c-legend{display:flex;gap:1rem;flex-wrap:wrap}
+    .c-legend-item{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--ink-2)}
+    .c-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .mini-leg{display:flex;gap:.75rem;flex-wrap:wrap}
+    .mini-leg-item{font-size:.67rem;color:var(--ink-3);display:flex;align-items:center;gap:.3rem}
+    .mini-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .featured-sidebar{padding-left:2rem}
+    .sidebar-stat{text-align:center;padding:1.5rem 0;border-bottom:0.5px solid var(--paper-3)}
+    .stat-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1}
+    .stat-label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:.25rem}
+    .about-box{padding:1.5rem 0}
+    .about-box h4{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.75rem}
+    .about-box p{font-size:.85rem;color:var(--ink-2);line-height:1.7}
+    .section-divider{display:flex;align-items:center;gap:1.5rem;margin:2.5rem 0 2rem}
+    .section-divider h2{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+    .section-divider hr{flex:1;border:none;border-top:0.5px solid var(--paper-3)}
+    .articles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:0.5px solid var(--paper-3);border-left:0.5px solid var(--paper-3);margin-bottom:3rem}
+    .article-card{padding:1.5rem;border-right:0.5px solid var(--paper-3);border-bottom:0.5px solid var(--paper-3);transition:background .15s;display:flex;flex-direction:column}
+    .article-card:hover{background:var(--paper-2)}
+    .card-source{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+    .card-hl{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;line-height:1.3;margin-bottom:.75rem}
+    .card-hl a{color:var(--ink);text-decoration:none}
+    .card-hl a:hover{color:var(--accent)}
+    .card-summary{font-size:.83rem;color:var(--ink-2);line-height:1.65;margin-bottom:1rem;flex:1}
+    .card-date{font-size:.7rem;color:var(--ink-3);margin-top:.75rem}
+    .empty-state{grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--ink-3);font-size:.9rem}
     .site-footer{border-top:2px solid var(--ink);padding:2rem 2.5rem;text-align:center}
     .site-footer p{font-size:.78rem;color:var(--ink-3);letter-spacing:.05em}
-    .site-footer a{color:var(--ink-2);text-decoration:none}
-    .site-footer a:hover{color:var(--accent)}
-    @media(max-width:700px){.page-wrap{padding:2rem 1.25rem}.site-nav{padding:.75rem 1.25rem}}
+    @media(max-width:900px){
+      .featured-section{grid-template-columns:1fr}
+      .featured-main{padding-right:0;border-right:none;border-bottom:0.5px solid var(--paper-3);padding-bottom:2rem}
+      .featured-sidebar{padding-left:0;padding-top:1.5rem}
+      .articles-grid{grid-template-columns:1fr}
+      .page-wrap,.masthead-top,.masthead-main{padding-left:1.25rem;padding-right:1.25rem}
+    }
   </style>
 </head>
 <body>
-  <nav class="site-nav">
-    <a class="nav-back" href="{{ url_for('public_home') }}">← ClearLens</a>
-    <a class="nav-logo" href="{{ url_for('public_home') }}">ClearLens</a>
-    <span style="width:80px"></span>
-  </nav>
-
+  <header class="masthead">
+    <div class="masthead-top">
+      <span class="mast-date">{{ today }}</span>
+      <span class="mast-tag">AI-sourced · Multi-source verified · Unbiased</span>
+    </div>
+    <div class="masthead-main">
+      <a class="logo-link" href="{{ url_for('public_home') }}"><img src="{{ url_for('static', filename='logo.png') }}" alt="ClearLens - Focus on clarity"/></a>
+      <div class="mast-rule">
+        <hr/><span class="mast-tagline">Every story. Every perspective. No agenda.</span><hr/>
+      </div>
+      <form class="search-form" action="{{ url_for('search_articles') }}" method="get" role="search">
+        <input type="search" name="q" value="{{ q|default('') }}" placeholder="Search articles..." aria-label="Search articles" maxlength="100"/>
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </header>
   <div class="page-wrap">
-    <p class="page-kicker">ClearLens</p>
-    <h1 class="page-title">Privacy Policy</h1>
-    <p class="updated">Last updated: {{ today }}</p>
+    <main class="legal">
+      <h1>Privacy Policy</h1>
+      <p class="upd">Last updated September 30, 2026</p>
+<h2>What we collect</h2>
+<ul>
+<li><strong>Technical data:</strong> like most websites, our hosting provider and servers automatically log information such as IP address, browser type, pages visited, and timestamps.</li>
+<li><strong>Search terms:</strong> what you type into the Site's search bar is used to return results.</li>
+<li><strong>Email address:</strong> only if you choose to give it to us, for example to receive updates. We use it only for that purpose.</li>
+</ul>
+<p>We do not ask for accounts, and we do not knowingly collect sensitive personal information.</p>
+<h2>How we use it</h2>
+<p>To operate, secure, and improve the Site, and to respond to messages you send us. We do not sell your personal information.</p>
+<h2>Service providers</h2>
+<p>We use third-party services to run the Site, including cloud hosting (Heroku) and image and data providers. They may process technical data on our behalf under their own privacy policies.</p>
+<h2>Cookies</h2>
+<p>The Site does not currently use advertising or tracking cookies. If that changes, we will update this policy.</p>
+<h2>Retention and your choices</h2>
+<p>We keep server logs for a limited time and email addresses until you ask us to delete them. You can request access to or deletion of your personal information by emailing <a href="mailto:clearlens.live@gmail.com">clearlens.live@gmail.com</a>. Depending on where you live (for example California or the EU/UK), you may have additional legal rights, and we will honor valid requests.</p>
+<h2>Children</h2>
+<p>The Site is not directed to children under 13, and we do not knowingly collect their personal information.</p>
+<h2>Changes and contact</h2>
+<p>We may update this policy and will change the date below when we do. Questions: <a href="mailto:clearlens.live@gmail.com">clearlens.live@gmail.com</a>.</p>
 
-    <div class="policy-section">
-      <h2>Overview</h2>
-      <p>ClearLens is an AI-sourced news platform. This policy explains what information we collect, how we use it, and the choices you have.</p>
-    </div>
-
-    <div class="policy-section">
-      <h2>Information we collect</h2>
-      <ul>
-        <li><strong>Search queries</strong> — terms you enter in the search bar are used only to return matching articles.</li>
-        <li><strong>Article submissions</strong> — if you submit or upload an article for editorial review, we store the text, metadata, and attachment you provide.</li>
-        <li><strong>Basic analytics</strong> — our hosting provider may log standard request data (IP address, browser type, pages visited) for security and operational purposes.</li>
-      </ul>
-    </div>
-
-    <div class="policy-section">
-      <h2>How we use information</h2>
-      <ul>
-        <li>To display articles, search results, and editorial submissions.</li>
-        <li>To improve our reporting and the reliability of our source analysis.</li>
-        <li>We do <strong>not</strong> sell, rent, or share your personal information with third parties for advertising.</li>
-      </ul>
-    </div>
-
-    <div class="policy-section">
-      <h2>AI and automation</h2>
-      <p>Article text, source consensus summaries, and video briefs are generated with the assistance of AI models using public news sources. No personal information about you is used to generate content.</p>
-    </div>
-
-    <div class="policy-section">
-      <h2>Cookies and storage</h2>
-      <p>We use a session cookie solely to keep editorial staff logged in to the studio dashboard. Public visitors are not tracked with advertising cookies.</p>
-    </div>
-
-    <div class="policy-section">
-      <h2>Your choices</h2>
-      <ul>
-        <li>You may browse the public site without providing personal information.</li>
-        <li>You may request removal of an article you submitted by contacting us.</li>
-        <li>You may clear your browser cookies at any time.</li>
-      </ul>
-    </div>
-
-    <div class="policy-section">
-      <h2>Contact</h2>
-      <p>For privacy questions, contact the ClearLens editorial team through the channels listed on the home page.</p>
-    </div>
+    </main>
   </div>
-
   <footer class="site-footer">
-    <p>ClearLens — AI-sourced news analyzed across multiple outlets for full transparency · <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></p>
+    <p>ClearLens — AI-sourced news analyzed across multiple outlets for full transparency</p>
+    <p style="margin-top:.75rem"><a href="/about">About</a> · <a href="/disclaimer">Disclaimer</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></p>
+    <p style="margin-top:.75rem;max-width:760px;margin-left:auto;margin-right:auto;font-size:.72rem;line-height:1.6">Content on ClearLens is generated by automated systems from public sources and is provided for general information only. It is not medical, legal, or financial advice and may contain errors. Always consult a qualified professional and verify with original sources.</p>
   </footer>
 </body>
 </html>
