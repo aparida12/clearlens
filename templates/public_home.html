@@ -182,6 +182,14 @@
         <div class="empty-state">No articles yet. Check back soon.</div>
       {% endif %}
     </div>
+
+    {% if total_pages > 1 %}
+    <nav class="pagination" style="display:flex;justify-content:space-between;align-items:center;margin:32px 0;gap:16px;">
+      {% if has_prev %}<a href="{{ url_for('public_home', page=page-1) }}">← Newer</a>{% else %}<span></span>{% endif %}
+      <span>Page {{ page }} of {{ total_pages }}</span>
+      {% if has_next %}<a href="{{ url_for('public_home', page=page+1) }}">Older →</a>{% else %}<span></span>{% endif %}
+    </nav>
+    {% endif %}
   </div>
 
   <footer class="site-footer">
