@@ -26,6 +26,13 @@
     .mast-rule{display:flex;align-items:center;gap:1rem;margin-top:.75rem}
     .mast-rule hr{flex:1;border:none;border-top:0.5px solid var(--paper-3)}
     .mast-tagline{font-size:.8rem;color:var(--ink-2);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap}
+    .logo-link{display:inline-block;line-height:0}
+    .logo-link img{height:clamp(90px,14vw,140px);width:auto;display:block;margin:0 auto}
+    .search-form{display:flex;max-width:520px;margin:1.25rem auto 0}
+    .search-form input{flex:1;padding:.65rem 1rem;font:inherit;font-size:.9rem;border:1px solid var(--paper-3);border-right:none;border-radius:4px 0 0 4px;background:#fff;color:var(--ink);outline:none}
+    .search-form input:focus{border-color:#00B2CC}
+    .search-form button{padding:.65rem 1.25rem;font:inherit;font-size:.8rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:#0B2A55;color:#fff;border:1px solid #0B2A55;border-radius:0 4px 4px 0;cursor:pointer}
+    .search-form button:hover{background:#00B2CC;border-color:#00B2CC}
     .page-wrap{max-width:1280px;margin:0 auto;padding:0 2.5rem}
     .featured-section{display:grid;grid-template-columns:1fr 320px;gap:0;border-bottom:1px solid var(--paper-3);margin-top:2.5rem}
     .featured-main{padding-right:2.5rem;border-right:0.5px solid var(--paper-3)}
@@ -92,10 +99,14 @@
       <span class="mast-tag">AI-sourced · Multi-source verified · Unbiased</span>
     </div>
     <div class="masthead-main">
-      <h1>ClearLens</h1>
+      <a class="logo-link" href="{{ url_for('public_home') }}"><img src="{{ url_for('static', filename='logo.png') }}" alt="ClearLens - Focus on clarity"/></a>
       <div class="mast-rule">
         <hr/><span class="mast-tagline">Every story. Every perspective. No agenda.</span><hr/>
       </div>
+      <form class="search-form" action="{{ url_for('search_articles') }}" method="get" role="search">
+        <input type="search" name="q" value="{{ q|default('') }}" placeholder="Search articles..." aria-label="Search articles" maxlength="100"/>
+        <button type="submit">Search</button>
+      </form>
     </div>
   </header>
 

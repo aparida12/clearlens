@@ -217,6 +217,40 @@ def public_home():
     )
 
 
+@app.route("/search", methods=["GET"])
+def search_articles():
+    from flask import request
+    q = (request.args.get("q", "") or "").strip()[:100]
+    results = []
+    if q:
+        like = "%" + q.lower() + "%"
+        with get_conn() as conn:
+            cur = run(
+                conn,
+                """
+                SELECT id, title, source, article_date, url, content, created_at, consensus_data, image_url, image_credit
+                FROM uploaded_articles
+                WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?
+                ORDER BY created_at DESC
+                LIMIT 60
+                """,
+                (like, like),
+            )
+            rows = cur.fetchall()
+        for row in rows:
+            content = strip_byline(row["content"] or "")
+            lines = [l.strip() for l in content.split("\n") if l.strip()]
+            summary = lines[1] if len(lines) > 1 else (lines[0] if lines else "")
+            results.append({
+                "slug": str(row["id"]),
+                "headline": row["title"] or "",
+                "summary": summary,
+                "date_formatted": format_date(row["created_at"] or ""),
+                "consensus": parse_consensus(row["consensus_data"]),
+            })
+    return render_template("search.html", q=q, results=results, total=len(results), today=datetime.now().strftime("%B %d, %Y"))
+
+
 @app.route("/article/<slug>", methods=["GET"])
 def article_detail(slug):
     with get_conn() as conn:
