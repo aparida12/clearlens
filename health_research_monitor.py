@@ -974,6 +974,9 @@ def passes_grounding_checks(item, report, article_text):
     return True
 
 
+_SKIPPED_IDS = set()  # items rejected this session; cleared when the worker restarts
+
+
 def item_is_institutional(item):
     """True when the story itself comes from an official health body."""
     try:
@@ -2051,6 +2054,8 @@ def run_monitor():
     )
     min_confidence_score = max(MIN_CONFIDENCE_SCORE, STRICT_MIN_CONFIDENCE_SCORE) if strict_quality_mode else MIN_CONFIDENCE_SCORE
 
+    filtered_items = [i for i in filtered_items if i["id"] not in _SKIPPED_IDS]
+
     # High-level notifications trigger full cross-research.
     for item in filtered_items:
         try:
@@ -2152,6 +2157,9 @@ def run_monitor():
             )
         except Exception as exc:
             print(f"Research pipeline failed for item '{item.get('title', 'Untitled')}': {exc}")
+
+    _kept_ids = {e["item"]["id"] for e in candidate_entries}
+    _SKIPPED_IDS.update(i["id"] for i in filtered_items if i["id"] not in _kept_ids)
 
     # Quality-first ranking: prioritize confidence and evidence depth before buzz.
     candidate_entries.sort(
