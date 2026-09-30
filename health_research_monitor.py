@@ -897,6 +897,23 @@ def collect_verified_source_records(research_report, max_records=5):
     return records[:max_records]
 
 
+def item_is_institutional(item):
+    """True when the story itself comes from an official health body."""
+    try:
+        host = urlparse(item.get("url") or "").netloc.lower().split(":")[0]
+    except Exception:
+        host = ""
+    if host.endswith(".gov") or any(host == d or host.endswith("." + d) for d in INSTITUTIONAL_SOURCE_DOMAINS):
+        return True
+    title = item.get("title") or ""
+    suffix = title.rsplit(" - ", 1)[-1].strip().lower() if " - " in title else ""
+    markers = (".gov", "who.int", "cdc.gov", "fda.gov", "nih.gov", "paho", "world health organization",
+               "national institutes of health", "centers for disease control", "department of health")
+    if suffix and (any(m in suffix for m in markers) or re.match(r"(who|cdc|fda|nih)\b", suffix)):
+        return True
+    return (item.get("source") or "").strip().lower() in {"cdc", "who", "nih", "fda"}
+
+
 def count_institutional_sources(research_report):
     urls = set()
     findings = research_report.get("findings", {})
@@ -1954,7 +1971,7 @@ def run_monitor():
                 continue
 
             peer_reviewed_count = len(report.get("findings", {}).get("corroborating_studies", []))
-            institutional_count = count_institutional_sources(report)
+            institutional_count = count_institutional_sources(report) + (1 if item_is_institutional(item) else 0)
 
             if peer_reviewed_count < min_peer_reviewed_sources:
                 print(
