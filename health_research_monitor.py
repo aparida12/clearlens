@@ -515,11 +515,12 @@ def _story_tokens(title):
     return {w for w in re.findall(r"[a-z0-9]+", t) if len(w) > 3 and w not in _STORY_STOP}
 
 
-def same_story(title_a, title_b, threshold=0.5):
+def same_story(title_a, title_b, threshold=0.4):
     a, b = _story_tokens(title_a), _story_tokens(title_b)
     if len(a) < 3 or len(b) < 3:
         return False
-    return len(a & b) / len(a | b) >= threshold
+    shared = len(a & b)
+    return shared / len(a | b) >= threshold or (shared >= 4 and shared / min(len(a), len(b)) >= 0.6)
 
 
 def is_duplicate(conn, item):
