@@ -183,8 +183,9 @@ def load_generated_articles(limit=50, offset=0):
 
 def count_generated_articles():
     with get_conn() as conn:
-        cur = run(conn, "SELECT COUNT(*) FROM uploaded_articles")
-        return cur.fetchone()[0]
+        cur = run(conn, "SELECT COUNT(*) AS n FROM uploaded_articles")
+        row = cur.fetchone()
+        return row["n"]
 
 
 @app.route("/", methods=["GET"])
