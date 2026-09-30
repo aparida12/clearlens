@@ -1736,7 +1736,19 @@ def init_uploaded_articles_table(conn):
 def compute_consensus(title, research_report):
     """Classify verified sources against the headline. Returns None if it can't be done honestly."""
     try:
-        recs = collect_verified_source_records(research_report, max_records=8)
+        recs = []
+        seen_titles = set()
+        for n_ in research_report.get("findings", {}).get("related_news", []):
+            t_ = (n_.get("title") or "").strip()
+            if not t_ or t_.lower() in seen_titles:
+                continue
+            seen_titles.add(t_.lower())
+            outlet_ = t_.rsplit(" - ", 1)[-1].strip() if " - " in t_ else (n_.get("source") or "News")
+            recs.append({"source": outlet_[:60], "title": t_, "url": n_.get("url", ""), "summary": (n_.get("summary") or "").strip()})
+        for r_ in collect_verified_source_records(research_report, max_records=0):
+            if r_.get("source") in ("PubMed", "Preprint"):
+                recs.append(r_)
+        recs = recs[:8]
         if len(recs) < 3:
             return None
         listing = "\n".join(
