@@ -507,7 +507,30 @@ def is_public_health_relevant(item):
     )
 
 
+_STORY_STOP = {"with", "from", "that", "this", "have", "over", "into", "about", "after", "amid", "says", "said", "will", "your", "what", "they", "their", "more", "than", "issues", "announces", "because", "possible", "due"}
+
+
+def _story_tokens(title):
+    t = re.sub(r"\s[-|]\s[^-|]{2,70}$", "", (title or "").lower())
+    return {w for w in re.findall(r"[a-z0-9]+", t) if len(w) > 3 and w not in _STORY_STOP}
+
+
+def same_story(title_a, title_b, threshold=0.5):
+    a, b = _story_tokens(title_a), _story_tokens(title_b)
+    if len(a) < 3 or len(b) < 3:
+        return False
+    return len(a & b) / len(a | b) >= threshold
+
+
 def is_duplicate(conn, item):
+    if _is_duplicate_prefix(conn, item):
+        return True
+    cursor = run(conn, "SELECT title FROM processed ORDER BY date DESC LIMIT 400")
+    title = item.get("title", "")
+    return any(same_story(title, row[0] or "") for row in cursor.fetchall())
+
+
+def _is_duplicate_prefix(conn, item):
     """
     Simple duplicate check: compare title against last 50 processed items
     """
@@ -1941,6 +1964,10 @@ def run_monitor():
                 f"{item['title']}"
             )
             mark_processed(conn, item["id"], item["title"], item["source"], item["date"])
+            continue
+
+        if any(same_story(item["title"], other["title"]) for other in filtered_items):
+            print(f"Duplicate story in this batch: {item['title']}")
             continue
 
         print(f"Passed filter (signal {score}, impact {population_impact}): {item['title']}")
