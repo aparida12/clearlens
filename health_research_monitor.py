@@ -127,6 +127,7 @@ MIN_BUZZ_TOTAL_SOURCES = int(os.getenv("MIN_BUZZ_TOTAL_SOURCES", "12"))
 MIN_POPULATION_IMPACT_SCORE = int(os.getenv("MIN_POPULATION_IMPACT_SCORE", "16"))
 MIN_SOURCE_TEXT_CHARS = int(os.getenv("MIN_SOURCE_TEXT_CHARS", "400"))
 MAX_UNGROUNDED_CLAIMS = int(os.getenv("MAX_UNGROUNDED_CLAIMS", "1"))
+GROUNDING_NUMBER_CHECK = os.getenv("GROUNDING_NUMBER_CHECK", "strict").strip().lower()  # strict | warn | off
 APPROVAL_MODE = os.getenv("APPROVAL_MODE", "automatic").strip().lower()
 QUALITY_MODE = os.getenv("QUALITY_MODE", "strict").strip().lower()
 STRICT_MIN_CONFIDENCE_SCORE = int(os.getenv("STRICT_MIN_CONFIDENCE_SCORE", "90"))
@@ -946,9 +947,11 @@ def passes_grounding_checks(item, report, article_text):
             continue
         if n not in pool_flat:
             bad_numbers.append(m)
-    if bad_numbers:
-        print(f"Skipped item: numbers not in source {bad_numbers[:5]}: {title}")
-        return False
+    if bad_numbers and GROUNDING_NUMBER_CHECK != "off":
+        if GROUNDING_NUMBER_CHECK == "strict":
+            print(f"Skipped item: numbers not in source {bad_numbers[:5]}: {title}")
+            return False
+        print(f"Warning: numbers not in source {bad_numbers[:5]}: {title}")
 
     try:
         prompt = (
