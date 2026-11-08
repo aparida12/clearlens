@@ -8,12 +8,14 @@ const DATA_DIR = CWD.endsWith(`${path.sep}frontend`)
 const ARTICLES_FILE = path.join(DATA_DIR, "articles.json");
 const STATUS_FILE = path.join(DATA_DIR, "agent-status.json");
 const QUEUE_FILE = path.join(DATA_DIR, "agent-queue.json");
+const READ_ONLY_RUNTIME = process.env.VERCEL === "1";
 
 async function ensureDir() {
   await fs.mkdir(DATA_DIR, { recursive: true });
 }
 
 async function ensureJsonFile(filePath, fallbackValue) {
+  if (READ_ONLY_RUNTIME) return;
   await ensureDir();
   try {
     await fs.access(filePath);
@@ -23,7 +25,6 @@ async function ensureJsonFile(filePath, fallbackValue) {
 }
 
 async function readJson(filePath, fallbackValue) {
-  await ensureJsonFile(filePath, fallbackValue);
   try {
     const raw = await fs.readFile(filePath, "utf8");
     const parsed = JSON.parse(raw || JSON.stringify(fallbackValue));
@@ -34,6 +35,7 @@ async function readJson(filePath, fallbackValue) {
 }
 
 async function writeJson(filePath, value) {
+  if (READ_ONLY_RUNTIME) return;
   await ensureDir();
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
