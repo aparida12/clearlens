@@ -3,7 +3,7 @@ import { runAgentCycle } from '@/lib/agent';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request) {
+async function run(request) {
   try {
     const { searchParams } = new URL(request.url);
     const isTest = searchParams.get('test') === 'true';
@@ -20,7 +20,15 @@ export async function POST(request) {
     if (new URL(request.url).searchParams.get('test') === 'true' && error?.debugInfo) {
       response.debugInfo = error.debugInfo;
     }
-    
+
     return NextResponse.json(response, { status: 500 });
   }
+}
+
+export async function GET(request) {
+  return run(request);
+}
+
+export async function POST(request) {
+  return run(request);
 }

@@ -237,11 +237,45 @@ async function fetchTopHeadlines() {
 
   console.log(`[HEADLINE FETCH] Collected ${collected.length} headlines from news APIs`);
 
-  if (!collected.length) {
-    throw new Error("No headlines fetched from any API.");
+  let deduped = dedupeByTitleSimilarity(collected);
+  if (!deduped.length) {
+    const rssFeeds = [
+      "https://www.who.int/rss-feeds/news-english.xml",
+      "https://feeds.bbci.co.uk/news/health/rss.xml",
+    ];
+    const rssResults = await Promise.all(
+      rssFeeds.map(async (url) => {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const xml = await response.text();
+          return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 20).map((match) => {
+            const item = match[1];
+            const value = (tag) => {
+              const found = item.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`));
+              return found ? found[1].replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim() : "";
+            };
+            return {
+              title: value("title"),
+              description: value("description"),
+              source: url.includes("who.int") ? "World Health Organization" : "BBC News",
+              url: value("link"),
+              publishedAt: value("pubDate"),
+            };
+          });
+        } catch (error) {
+          console.error(`[HEADLINE FETCH] RSS failed: ${error.message}`);
+          return [];
+        }
+      }),
+    );
+    deduped = dedupeByTitleSimilarity(rssResults.flat());
   }
 
-  const deduped = dedupeByTitleSimilarity(collected);
+  if (!deduped.length) {
+    throw new Error("No headlines fetched from news APIs or RSS feeds.");
+  }
+
   const averageSentiment =
     deduped.length > 0
       ? deduped.reduce((sum, item) => sum + (item.sentimentScore || 0), 0) / deduped.length
